@@ -2,14 +2,15 @@
 
 namespace App\Services;
 
+use App\Events\MemberRemoved;
+use App\Events\MemberRoleChanged;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Role;
+use App\Models\User;
 use App\Repositories\Contracts\MemberRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\DB;
-use App\Events\MemberRoleChanged;
-use App\Events\MemberRemoved;
 
 class MemberService
 {
@@ -28,29 +29,26 @@ class MemberService
             ->all();
     }
 
-    /**
-     * Existing user ho to workspace me jod do, warna naya user bana ke jodo.
-     */
+    // Adds an existing user, or creates the user first
     public function add(
         int $workspaceId,
-        Role $actorRole,
+        User $actor,
+        ?Role $actorRole,
         string $email,
         ?string $name,
         ?string $password,
         int $roleId
     ): array {
-
         $role = $this->findRoleOrFail($workspaceId, $roleId);
 
-        $this->ensureCanAssign($actorRole, $role);
+        $this->ensureCanAssign($actor, $actorRole, $role);
 
         return DB::transaction(function () use ($workspaceId, $email, $name, $password, $role) {
-
             $user = $this->userRepository->findByEmail($email);
 
             if (!$user) {
                 if (!$name || !$password) {
-                    throw new BusinessRuleException('Name and password are required to create a new user.');
+                    throw new BusinessRuleException(__('rbac.name_and_password_required'));
                 }
 
                 $user = $this->userRepository->create([
@@ -59,103 +57,82 @@ class MemberService
                     'password' => $password,
                 ]);
             } elseif ($this->memberRepository->isMember($workspaceId, $user->id)) {
-                throw new BusinessRuleException('This user is already a member of this workspace.');
+                throw new BusinessRuleException(__('rbac.already_member'));
             }
 
-            $this->memberRepository->add($workspaceId, $user->id, $role->id);
+            $this->memberRepository->add($workspaceId, $user->id);
+            $this->roleRepository->assignToUser($user, $role);
 
-            return $this->present(
-                $this->memberRepository->findMember($workspaceId, $user->id)
-            );
+            return $this->present($this->memberRepository->findMember($workspaceId, $user->id));
         });
     }
 
-    public function updateRole(
-        int $workspaceId,
-        Role $actorRole,
-        int $actorUserId,
-        int $userId,
-        int $roleId
-    ): array {
-
-        if ($userId === $actorUserId) {
-            throw new BusinessRuleException('You cannot change your own role.', 403);
+    public function updateRole(int $workspaceId, User $actor, ?Role $actorRole, int $userId, int $roleId): array
+    {
+        if ($userId === $actor->id) {
+            throw new BusinessRuleException(__('rbac.cannot_change_own_role'), 403);
         }
 
         $member = $this->findMemberOrFail($workspaceId, $userId);
         $currentRole = $this->findRoleOrFail($workspaceId, (int) $member->role_id);
 
-        $this->permissionService->ensureCanManageRole($actorRole, $currentRole);
+        $this->permissionService->ensureCanManageRole($actor, $actorRole, $currentRole);
 
         $newRole = $this->findRoleOrFail($workspaceId, $roleId);
+
         if ($newRole->id === $currentRole->id) {
             return $this->present($member);
         }
 
-        $this->ensureCanAssign($actorRole, $newRole);
+        $this->ensureCanAssign($actor, $actorRole, $newRole);
 
         if ($currentRole->isOwner() && !$newRole->isOwner()) {
-            $this->ensureNotLastOwner($workspaceId, $currentRole);
+            $this->ensureNotLastOwner($currentRole);
         }
 
-        $this->memberRepository->updateRole($workspaceId, $userId, $newRole->id);
+        $this->roleRepository->assignToUser($this->userRepository->findById($userId), $newRole);
 
-        MemberRoleChanged::dispatch(
-            $workspaceId,
-            $actorUserId,
-            $userId,
-            $currentRole->name,
-            $newRole->name,
-        );
+        MemberRoleChanged::dispatch($workspaceId, $actor->id, $userId, $currentRole->name, $newRole->name);
 
-        return $this->present(
-            $this->memberRepository->findMember($workspaceId, $userId)
-        );
+        return $this->present($this->memberRepository->findMember($workspaceId, $userId));
     }
 
-    public function remove(
-        int $workspaceId,
-        Role $actorRole,
-        int $actorUserId,
-        int $userId
-    ): void {
-
-        if ($userId === $actorUserId) {
-            throw new BusinessRuleException('You cannot remove yourself from the workspace.', 403);
+    public function remove(int $workspaceId, User $actor, ?Role $actorRole, int $userId): void
+    {
+        if ($userId === $actor->id) {
+            throw new BusinessRuleException(__('rbac.cannot_remove_self'), 403);
         }
 
         $member = $this->findMemberOrFail($workspaceId, $userId);
         $currentRole = $this->findRoleOrFail($workspaceId, (int) $member->role_id);
 
-        $this->permissionService->ensureCanManageRole($actorRole, $currentRole);
+        $this->permissionService->ensureCanManageRole($actor, $actorRole, $currentRole);
 
         if ($currentRole->isOwner()) {
-            $this->ensureNotLastOwner($workspaceId, $currentRole);
+            $this->ensureNotLastOwner($currentRole);
         }
 
-        $this->memberRepository->remove($workspaceId, $userId);
+        DB::transaction(function () use ($workspaceId, $userId) {
+            $this->roleRepository->removeFromUser($this->userRepository->findById($userId), $workspaceId);
+            $this->memberRepository->remove($workspaceId, $userId);
+        });
 
-         MemberRemoved::dispatch(
-            $workspaceId,
-            $actorUserId,
-            $userId,
-            $currentRole->name,
-        );
+        MemberRemoved::dispatch($workspaceId, $actor->id, $userId, $currentRole->name);
     }
 
-    private function ensureCanAssign(Role $actorRole, Role $role): void
+    private function ensureCanAssign(User $actor, ?Role $actorRole, Role $role): void
     {
-        if ($role->isOwner() && !$actorRole->isOwner()) {
-            throw new BusinessRuleException('Only an owner can assign the owner role.', 403);
+        if ($role->isOwner() && !$this->permissionService->isOwnerOrSuperAdmin($actor, $actorRole)) {
+            throw new BusinessRuleException(__('rbac.owner_assign_only'), 403);
         }
 
-        $this->permissionService->ensureCanManageRole($actorRole, $role);
+        $this->permissionService->ensureCanManageRole($actor, $actorRole, $role);
     }
 
-    private function ensureNotLastOwner(int $workspaceId, Role $ownerRole): void
+    private function ensureNotLastOwner(Role $ownerRole): void
     {
-        if ($this->memberRepository->countByRole($workspaceId, $ownerRole->id) <= 1) {
-            throw new BusinessRuleException('A workspace must have at least one owner.');
+        if ($this->roleRepository->countMembers($ownerRole) <= 1) {
+            throw new BusinessRuleException(__('rbac.last_owner'));
         }
     }
 
@@ -164,7 +141,7 @@ class MemberService
         $role = $this->roleRepository->findInWorkspace($workspaceId, $roleId);
 
         if (!$role) {
-            throw new BusinessRuleException('Selected role does not exist in this workspace.');
+            throw new BusinessRuleException(__('rbac.role_not_in_workspace'));
         }
 
         return $role;
@@ -175,7 +152,7 @@ class MemberService
         $member = $this->memberRepository->findMember($workspaceId, $userId);
 
         if (!$member) {
-            throw new BusinessRuleException('Member not found.', 404);
+            throw new BusinessRuleException(__('rbac.member_not_found'), 404);
         }
 
         return $member;

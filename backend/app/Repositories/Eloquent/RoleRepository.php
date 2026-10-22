@@ -3,8 +3,10 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Role;
+use App\Models\User;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class RoleRepository implements RoleRepositoryInterface
 {
@@ -16,7 +18,7 @@ class RoleRepository implements RoleRepositoryInterface
     public function getByWorkspaceId(int $workspaceId): Collection
     {
         return Role::where('workspace_id', $workspaceId)
-            ->with('permissions:id,slug')
+            ->with('permissions:id,name')
             ->withCount('users')
             ->orderBy('id')
             ->get();
@@ -24,8 +26,22 @@ class RoleRepository implements RoleRepositoryInterface
 
     public function findInWorkspace(int $workspaceId, int $roleId): ?Role
     {
-        return Role::where('workspace_id', $workspaceId)
-            ->find($roleId);
+        return Role::where('workspace_id', $workspaceId)->find($roleId);
+    }
+
+    public function findForUser(int $workspaceId, int $userId): ?Role
+    {
+        $roles = (new Role)->getTable();
+        $userRoles = config('permission.table_names.model_has_roles');
+
+        return Role::query()
+            ->join($userRoles, "{$userRoles}.role_id", '=', "{$roles}.id")
+            ->where("{$userRoles}.workspace_id", $workspaceId)
+            ->where("{$userRoles}.model_type", (new User)->getMorphClass())
+            ->where("{$userRoles}.model_id", $userId)
+            ->where("{$roles}.workspace_id", $workspaceId)
+            ->select("{$roles}.*")
+            ->first();
     }
 
     public function slugExists(int $workspaceId, string $slug, ?int $ignoreRoleId = null): bool
@@ -48,28 +64,48 @@ class RoleRepository implements RoleRepositoryInterface
         $role->delete();
     }
 
-    public function syncPermissions(Role $role, array $permissionIds): void
+    public function syncPermissions(Role $role, array $permissionNames): void
     {
-        $role->permissions()->sync($permissionIds);
+        // Spatie clears its permission cache here
+        $role->syncPermissions($permissionNames);
     }
 
-    public function getPermissionSlugs(Role $role): array
+    public function getPermissionNames(Role $role): array
     {
         return $role->permissions()
-            ->orderBy('permissions.id')
-            ->pluck('slug')
+            ->orderBy($role->permissions()->getRelated()->getQualifiedKeyName())
+            ->pluck('name')
             ->all();
-    }
-
-    public function hasPermission(Role $role, string $permissionSlug): bool
-    {
-        return $role->permissions()
-            ->where('slug', $permissionSlug)
-            ->exists();
     }
 
     public function countMembers(Role $role): int
     {
-        return $role->users()->count();
+        return DB::table(config('permission.table_names.model_has_roles'))
+            ->where('role_id', $role->id)
+            ->count();
+    }
+
+    public function assignToUser(User $user, Role $role): void
+    {
+        // Spatie reads the team (workspace) from global state
+        setPermissionsTeamId($role->workspace_id);
+        $user->unsetRelation('roles');
+
+        $user->syncRoles([$role]);
+    }
+
+    public function removeFromUser(User $user, int $workspaceId): void
+    {
+        setPermissionsTeamId($workspaceId);
+        $user->unsetRelation('roles');
+
+        $user->syncRoles([]);
+    }
+
+    public function ownerRoles(): Collection
+    {
+        return Role::where('slug', Role::OWNER_SLUG)
+            ->where('is_system', true)
+            ->get();
     }
 }

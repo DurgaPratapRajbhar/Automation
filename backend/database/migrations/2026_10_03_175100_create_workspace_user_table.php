@@ -22,10 +22,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->foreignId('role_id')
-                ->constrained()
-                ->restrictOnDelete();
-
+            // Membership only; the member's role lives in Spatie's model_has_roles (scoped by workspace_id)
             $table->timestamps();
 
             $table->unique(['workspace_id', 'user_id']);

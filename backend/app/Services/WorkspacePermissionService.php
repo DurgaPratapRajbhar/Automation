@@ -2,97 +2,96 @@
 
 namespace App\Services;
 
+use App\Enums\Permission;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Role;
-use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Models\User;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 
 /**
- * Workspace ke andar "kaun kya kar sakta hai" ka single source of truth.
- * Owner role sab kuch kar sakta hai; baaki roles sirf assigned permissions.
+ * Rules for "who may give which power to whom" inside a workspace.
+ * Super admin and the workspace owner pass every check.
  */
 class WorkspacePermissionService
 {
     public function __construct(
-        private RoleRepositoryInterface $roleRepository,
-        private PermissionRepositoryInterface $permissionRepository
+        private RoleRepositoryInterface $roleRepository
     ) {}
 
-    public function can(Role $role, string $permissionSlug): bool
+    /** @return list<string> */
+    public function permissionsOf(User $user, ?Role $role): array
     {
-        if ($role->isOwner()) {
-            return true;
+        if ($this->hasFullAccess($user, $role)) {
+            return Permission::values();
         }
 
-        return $this->roleRepository->hasPermission($role, $permissionSlug);
+        return $role ? $this->roleRepository->getPermissionNames($role) : [];
     }
 
-    public function permissionsOf(Role $role): array
+    // An actor cannot give a permission they do not have
+    public function ensureCanGrant(User $actor, ?Role $actorRole, array $permissionNames): void
     {
-        if ($role->isOwner()) {
-            return $this->permissionRepository->getAllSlugs();
-        }
-
-        return $this->roleRepository->getPermissionSlugs($role);
-    }
-
-    // Jo permission actor ke paas khud nahi hai, wo kisi role ko de nahi sakta
-    public function ensureCanGrant(Role $actorRole, array $permissionSlugs): void
-    {
-        if ($actorRole->isOwner()) {
+        if ($this->hasFullAccess($actor, $actorRole)) {
             return;
         }
 
-        $missing = array_values(array_diff(
-            $permissionSlugs,
-            $this->permissionsOf($actorRole)
-        ));
+        $missing = array_values(array_diff($permissionNames, $this->permissionsOf($actor, $actorRole)));
 
         if ($missing !== []) {
             throw new BusinessRuleException(
-                'You cannot grant permissions you do not have: ' . implode(', ', $missing),
+                __('rbac.cannot_grant', ['permissions' => implode(', ', $missing)]),
                 403
             );
         }
     }
 
-    // Apne se zyada powerful role ko actor na edit/delete kar sakta hai, na assign
-    public function ensureCanManageRole(Role $actorRole, Role $targetRole): void
+    // An actor cannot edit, delete or assign a role more powerful than their own
+    public function ensureCanManageRole(User $actor, ?Role $actorRole, Role $targetRole): void
     {
-        if ($actorRole->isOwner()) {
+        if ($this->hasFullAccess($actor, $actorRole)) {
             return;
         }
 
         if ($targetRole->isOwner()) {
-            throw new BusinessRuleException('Only an owner can manage the owner role.', 403);
+            throw new BusinessRuleException(__('rbac.owner_only'), 403);
         }
 
         $extra = array_diff(
-            $this->permissionsOf($targetRole),
-            $this->permissionsOf($actorRole)
+            $this->roleRepository->getPermissionNames($targetRole),
+            $this->permissionsOf($actor, $actorRole)
         );
 
         if ($extra !== []) {
-            throw new BusinessRuleException(
-                'You cannot manage a role that has more permissions than yours.',
-                403
-            );
+            throw new BusinessRuleException(__('rbac.role_too_powerful'), 403);
         }
     }
 
-    // Frontend ke checkbox screen ke liye: module wise groups
+    public function isOwnerOrSuperAdmin(User $user, ?Role $role): bool
+    {
+        return $this->hasFullAccess($user, $role);
+    }
+
+    // For the role form: permissions grouped by module
     public function groupedPermissions(): array
     {
-        return $this->permissionRepository->getAll()
-            ->groupBy(fn ($permission) => explode('.', $permission->slug)[0])
-            ->map(fn ($permissions, $module) => [
-                'module' => $module,
-                'permissions' => $permissions->map(fn ($permission) => [
-                    'slug' => $permission->slug,
-                    'name' => $permission->name,
-                ])->values()->all(),
-            ])
-            ->values()
-            ->all();
+        $groups = [];
+
+        foreach (Permission::cases() as $permission) {
+            $groups[$permission->module()][] = [
+                'slug' => $permission->value,
+                'name' => $permission->label(),
+            ];
+        }
+
+        return array_map(
+            fn (string $module, array $permissions) => ['module' => $module, 'permissions' => $permissions],
+            array_keys($groups),
+            array_values($groups)
+        );
+    }
+
+    private function hasFullAccess(User $user, ?Role $role): bool
+    {
+        return $user->isSuperAdmin() || ($role?->isOwner() ?? false);
     }
 }

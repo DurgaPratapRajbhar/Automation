@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Role;
 
+use App\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ class StoreRoleRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'permissions' => ['present', 'array'],
-            'permissions.*' => ['string', 'distinct', Rule::exists('permissions', 'slug')],
+            'permissions.*' => ['string', 'distinct', Rule::enum(Permission::class)],
         ];
     }
 }

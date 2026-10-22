@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Role;
 
+use App\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ class UpdateRoleRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:100'],
             'permissions' => ['sometimes', 'array'],
-            'permissions.*' => ['string', 'distinct', Rule::exists('permissions', 'slug')],
+            'permissions.*' => ['string', 'distinct', Rule::enum(Permission::class)],
         ];
     }
 }

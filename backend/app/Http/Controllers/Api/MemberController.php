@@ -31,6 +31,7 @@ class MemberController extends Controller
 
         $member = $this->memberService->add(
             $workspace->id,
+            $request->user(),
             $request->attributes->get('workspace_role'),
             $request->validated('email'),
             $request->validated('name'),
@@ -51,8 +52,8 @@ class MemberController extends Controller
 
         $member = $this->memberService->updateRole(
             $workspace->id,
+            $request->user(),
             $request->attributes->get('workspace_role'),
-            $request->user()->id,
             $userId,
             (int) $request->validated('role_id')
         );
@@ -70,8 +71,8 @@ class MemberController extends Controller
 
         $this->memberService->remove(
             $workspace->id,
+            $request->user(),
             $request->attributes->get('workspace_role'),
-            $request->user()->id,
             $userId
         );
 

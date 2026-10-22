@@ -2,19 +2,16 @@
 
 namespace App\Services;
 
-use App\Repositories\Contracts\UserRepositoryInterface;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-
-use App\Repositories\Contracts\WorkspaceRepositoryInterface;
-use App\Repositories\Contracts\RoleRepositoryInterface;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-
-use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Enums\WorkspaceStatus;
 use App\Models\Role;
-
-
+use App\Repositories\Contracts\MemberRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\WorkspaceRepositoryInterface;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -23,8 +20,9 @@ class AuthService
         private JwtService $jwtService,
         private RefreshTokenService $refreshTokenService,
         private WorkspaceRepositoryInterface $workspaceRepository,
+        private MemberRepositoryInterface $memberRepository,
         private RoleRepositoryInterface $roleRepository,
-        private PermissionRepositoryInterface $permissionRepository
+        private RoleService $roleService
     ) {
     }
 
@@ -118,25 +116,14 @@ class AuthService
                         'name' => $workspaceName,
                         'slug' => Str::slug($workspaceName) . '-' . Str::lower(Str::random(6)),
                         'type' => $workspaceType,
-                        'status' => 'active',
+                        'status' => WorkspaceStatus::Active->value,
                     ]);
 
-                    $ownerRole = $this->roleRepository->create([
-                        'workspace_id' => $workspace->id,
-                        'name' => 'Owner',
-                        'slug' => Role::OWNER_SLUG,
-                        'is_system' => true,
-                    ]);
+                    // Owner + default roles; the new user becomes the owner
+                    $ownerRole = $this->roleService->createSystemRoles($workspace->id);
 
-                  
-
-                    $permissionIds = $this->permissionRepository->getAllIds();
-
-                    $ownerRole->permissions()->sync($permissionIds);
-
-                    $user->workspaces()->attach($workspace->id, [
-                        'role_id' => $ownerRole->id,
-                    ]);
+                    $this->memberRepository->add($workspace->id, $user->id);
+                    $this->roleRepository->assignToUser($user, $ownerRole);
 
                     $accessToken = $this->jwtService
                         ->generateAccessToken($user->id);
@@ -161,7 +148,7 @@ class AuthService
                             'name' => $workspace->name,
                             'slug' => $workspace->slug,
                             'type' => $workspace->type,
-                            'role' => 'owner',
+                            'role' => Role::OWNER_SLUG,
                         ],
                     ];
                 });

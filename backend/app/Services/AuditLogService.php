@@ -12,9 +12,9 @@ class AuditLogService
         private AuditLogRepositoryInterface $auditLogs
     ) {}
 
-  public function list(int $workspaceId, int $perPage = 25): CursorPaginator
+  public function list(int $workspaceId, int $perPage): CursorPaginator
 {
-    $perPage = max(1, min($perPage, 100));  
+    $perPage = max(1, min($perPage, config('pagination.max_per_page')));
 
     return $this->auditLogs
         ->cursorForWorkspace($workspaceId, $perPage)

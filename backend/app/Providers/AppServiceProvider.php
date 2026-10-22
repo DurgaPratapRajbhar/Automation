@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\UserRepository;
@@ -32,6 +34,9 @@ use App\Repositories\Eloquent\ConversationRepository;
 
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use App\Repositories\Eloquent\MessageRepository;
+
+use App\Repositories\Contracts\CustomerRepositoryInterface;
+use App\Repositories\Eloquent\CustomerRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,6 +95,11 @@ class AppServiceProvider extends ServiceProvider
                 MessageRepository::class
             );
 
+            $this->app->bind(
+                CustomerRepositoryInterface::class,
+                CustomerRepository::class
+            );
+
     }
 
     /**
@@ -97,6 +107,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Super admin passes every permission check; others go through Spatie roles
+        Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
     }
 }

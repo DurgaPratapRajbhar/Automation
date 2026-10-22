@@ -13,12 +13,10 @@ class WorkspaceAccessController extends Controller
         private WorkspacePermissionService $permissionService
     ) {}
 
-    /**
-     * Logged-in user is workspace me kya kar sakta hai.
-     * Frontend isi list se decide karega kaunsa page / button dikhana hai.
-     */
+    // What the logged-in user can do here; the frontend shows pages/buttons from this list
     public function show(Request $request): JsonResponse
     {
+        $user = $request->user();
         $workspace = $request->attributes->get('workspace');
         $role = $request->attributes->get('workspace_role');
 
@@ -31,13 +29,14 @@ class WorkspaceAccessController extends Controller
                     'slug' => $workspace->slug,
                     'type' => $workspace->type,
                 ],
-                'role' => [
+                'role' => $role ? [
                     'id' => $role->id,
                     'name' => $role->name,
                     'slug' => $role->slug,
                     'is_owner' => $role->isOwner(),
-                ],
-                'permissions' => $this->permissionService->permissionsOf($role),
+                ] : null,
+                'is_super_admin' => $user->isSuperAdmin(),
+                'permissions' => $this->permissionService->permissionsOf($user, $role),
             ],
         ]);
     }

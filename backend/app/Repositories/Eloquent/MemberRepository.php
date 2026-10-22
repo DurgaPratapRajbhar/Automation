@@ -2,8 +2,11 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\Role;
+use App\Models\User;
 use App\Repositories\Contracts\MemberRepositoryInterface;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -31,26 +34,14 @@ class MemberRepository implements MemberRepositoryInterface
             ->exists();
     }
 
-    public function add(int $workspaceId, int $userId, int $roleId): void
+    public function add(int $workspaceId, int $userId): void
     {
         DB::table('workspace_user')->insert([
             'workspace_id' => $workspaceId,
             'user_id' => $userId,
-            'role_id' => $roleId,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-    }
-
-    public function updateRole(int $workspaceId, int $userId, int $roleId): void
-    {
-        DB::table('workspace_user')
-            ->where('workspace_id', $workspaceId)
-            ->where('user_id', $userId)
-            ->update([
-                'role_id' => $roleId,
-                'updated_at' => now(),
-            ]);
     }
 
     public function remove(int $workspaceId, int $userId): void
@@ -61,29 +52,29 @@ class MemberRepository implements MemberRepositoryInterface
             ->delete();
     }
 
-    public function countByRole(int $workspaceId, int $roleId): int
-    {
-        return DB::table('workspace_user')
-            ->where('workspace_id', $workspaceId)
-            ->where('role_id', $roleId)
-            ->count();
-    }
-
     private function baseQuery(int $workspaceId): Builder
     {
+        $roles = (new Role)->getTable();
+        $userRoles = config('permission.table_names.model_has_roles');
+        $userMorph = (new User)->getMorphClass();
+
         return DB::table('workspace_user')
             ->join('users', 'users.id', '=', 'workspace_user.user_id')
-            ->join('roles', 'roles.id', '=', 'workspace_user.role_id')
+            ->join($userRoles, function (JoinClause $join) use ($userRoles, $userMorph) {
+                $join->on("{$userRoles}.model_id", '=', 'workspace_user.user_id')
+                    ->on("{$userRoles}.workspace_id", '=', 'workspace_user.workspace_id')
+                    ->where("{$userRoles}.model_type", '=', $userMorph);
+            })
+            ->join($roles, "{$roles}.id", '=', "{$userRoles}.role_id")
             ->where('workspace_user.workspace_id', $workspaceId)
-            ->where('roles.workspace_id', $workspaceId)
             ->select([
                 'users.id',
                 'users.name',
                 'users.email',
-                'roles.id as role_id',
-                'roles.name as role_name',
-                'roles.slug as role_slug',
-                'roles.is_system as role_is_system',
+                "{$roles}.id as role_id",
+                "{$roles}.name as role_name",
+                "{$roles}.slug as role_slug",
+                "{$roles}.is_system as role_is_system",
                 'workspace_user.created_at as joined_at',
             ]);
     }

@@ -1,14 +1,17 @@
 <?php
 
+use App\Enums\Permission;
+use App\Http\Controllers\Api\AdminWorkspaceController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\WorkspaceAccessController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuditLogController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])
@@ -28,75 +31,89 @@ Route::prefix('auth')->group(function () {
 });
 
 /*
-| Workspace ke andar ke saare routes.
-| Har route par permission middleware lagana ZAROORI hai (sirf /workspace/me ko chhod ke).
+| Routes inside a workspace.
+| Every route needs a permission middleware (except /workspace/me).
 */
 Route::middleware(['jwt.auth', 'workspace'])->group(function () {
 
-    // Frontend: kaunse pages / buttons dikhane hain
+    // Frontend: which pages / buttons to show
     Route::get('/workspace/me', [WorkspaceAccessController::class, 'show']);
 
-    // Permissions (role form ke checkboxes)
+    // Permission checkboxes for the role form
     Route::get('/permissions', [PermissionController::class, 'index'])
-        ->middleware('permission:roles.view');
+        ->middleware(Permission::RolesView->middleware());
 
     // Roles
     Route::get('/roles', [RoleController::class, 'index'])
-        ->middleware('permission:roles.view');
+        ->middleware(Permission::RolesView->middleware());
     Route::post('/roles', [RoleController::class, 'store'])
-        ->middleware('permission:roles.create');
+        ->middleware(Permission::RolesCreate->middleware());
     Route::get('/roles/{roleId}', [RoleController::class, 'show'])
-        ->middleware('permission:roles.view')
+        ->middleware(Permission::RolesView->middleware())
         ->whereNumber('roleId');
     Route::put('/roles/{roleId}', [RoleController::class, 'update'])
-        ->middleware('permission:roles.edit')
+        ->middleware(Permission::RolesEdit->middleware())
         ->whereNumber('roleId');
     Route::delete('/roles/{roleId}', [RoleController::class, 'destroy'])
-        ->middleware('permission:roles.delete')
+        ->middleware(Permission::RolesDelete->middleware())
         ->whereNumber('roleId');
 
     // Members
     Route::get('/members', [MemberController::class, 'index'])
-        ->middleware('permission:members.view');
+        ->middleware(Permission::MembersView->middleware());
     Route::post('/members', [MemberController::class, 'store'])
-        ->middleware('permission:members.create');
+        ->middleware(Permission::MembersCreate->middleware());
     Route::put('/members/{userId}', [MemberController::class, 'update'])
-        ->middleware('permission:members.edit')
+        ->middleware(Permission::MembersEdit->middleware())
         ->whereNumber('userId');
     Route::delete('/members/{userId}', [MemberController::class, 'destroy'])
-        ->middleware('permission:members.delete')
+        ->middleware(Permission::MembersDelete->middleware())
         ->whereNumber('userId');
 
     // Channels
     Route::get('/channels', [ChannelController::class, 'index'])
-        ->middleware('permission:channels.view');
+        ->middleware(Permission::ChannelsView->middleware());
     Route::post('/channels', [ChannelController::class, 'store'])
-        ->middleware('permission:channels.create');
+        ->middleware(Permission::ChannelsCreate->middleware());
     Route::get('/channels/{channelId}', [ChannelController::class, 'show'])
-        ->middleware('permission:channels.view')
+        ->middleware(Permission::ChannelsView->middleware())
         ->whereNumber('channelId');
     Route::put('/channels/{channelId}', [ChannelController::class, 'update'])
-        ->middleware('permission:channels.edit')
+        ->middleware(Permission::ChannelsEdit->middleware())
         ->whereNumber('channelId');
     Route::delete('/channels/{channelId}', [ChannelController::class, 'destroy'])
-        ->middleware('permission:channels.delete')
+        ->middleware(Permission::ChannelsDelete->middleware())
         ->whereNumber('channelId');
 
     Route::post('/channels/send-message', [ChannelController::class, 'sendMessage'])
-        ->middleware(['permission:conversations.reply', 'throttle:30,1']);
+        ->middleware([Permission::ConversationsReply->middleware(), 'throttle:30,1']);
 
-            // Audit log (history)
+    // Customers
+    Route::get('/customers', [CustomerController::class, 'index'])
+        ->middleware(Permission::CustomersView->middleware());
+    Route::post('/customers', [CustomerController::class, 'store'])
+        ->middleware(Permission::CustomersCreate->middleware());
+    Route::get('/customers/{customerId}', [CustomerController::class, 'show'])
+        ->middleware(Permission::CustomersView->middleware())
+        ->whereNumber('customerId');
+    Route::put('/customers/{customerId}', [CustomerController::class, 'update'])
+        ->middleware(Permission::CustomersEdit->middleware())
+        ->whereNumber('customerId');
+    Route::delete('/customers/{customerId}', [CustomerController::class, 'destroy'])
+        ->middleware(Permission::CustomersDelete->middleware())
+        ->whereNumber('customerId');
+
+    // Audit log (history)
     Route::get('/audit-logs', [AuditLogController::class, 'index'])
-        ->middleware('permission:workspace.view');
+        ->middleware(Permission::WorkspaceView->middleware());
 });
 
-Route::get(
-    '/webhooks/whatsapp',
-    [WhatsAppWebhookController::class, 'verify']
-);
+// Platform super admin only
+Route::prefix('admin')->middleware(['jwt.auth', 'super.admin'])->group(function () {
+    Route::get('/workspaces', [AdminWorkspaceController::class, 'index']);
+    Route::patch('/workspaces/{workspaceId}/status', [AdminWorkspaceController::class, 'updateStatus'])
+        ->whereNumber('workspaceId');
+});
 
-Route::post(
-    '/webhooks/whatsapp',
-    [WhatsAppWebhookController::class, 'receive']
-);
-
+Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify']);
+Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive']);

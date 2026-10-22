@@ -7,6 +7,6 @@ interface AuditLogRepositoryInterface
 {
      
     public function create(array $data): AuditLog;
-    public function cursorForWorkspace(int $workspaceId, int $perPage = 25): CursorPaginator;
+    public function cursorForWorkspace(int $workspaceId, int $perPage): CursorPaginator;
     
 }

@@ -18,7 +18,7 @@ test('owner can do everything and sees all permissions', function () {
     $me = $this->getJson('/api/workspace/me', $headers)->assertOk();
 
     expect($me->json('data.role.is_owner'))->toBeTrue()
-        ->and($me->json('data.permissions'))->toHaveCount(31);
+        ->and($me->json('data.permissions'))->toHaveCount(count(App\Enums\Permission::cases()));
 
     $this->getJson('/api/roles', $headers)->assertOk();
     $this->getJson('/api/members', $headers)->assertOk();
@@ -64,7 +64,7 @@ test('nobody can escalate their own privileges', function () {
         ->json('data.role.id');
 
     $manager = memberWithPermissions(
-        $this, $owner, 'Manager',
+        $this, $owner, 'Team Lead',
         ['roles.view', 'roles.create', 'roles.edit', 'members.view', 'members.edit'],
         'manager@example.com'
     );

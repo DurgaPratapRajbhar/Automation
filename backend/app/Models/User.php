@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -45,16 +46,21 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 
-   public function workspaces(): BelongsToMany
+    public function workspaces(): BelongsToMany
     {
         return $this->belongsToMany(
             Workspace::class,
             'workspace_user'
         )
-        ->withPivot('role_id')
         ->withTimestamps();
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin === true;
     }
 }

@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\Permission;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Role;
-use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Models\User;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,7 +14,6 @@ class RoleService
 {
     public function __construct(
         private RoleRepositoryInterface $roleRepository,
-        private PermissionRepositoryInterface $permissionRepository,
         private WorkspacePermissionService $permissionService
     ) {}
 
@@ -30,19 +30,13 @@ class RoleService
         return $this->present($this->findOrFail($workspaceId, $roleId));
     }
 
-    public function create(
-        int $workspaceId,
-        Role $actorRole,
-        string $name,
-        array $permissionSlugs
-    ): array {
-
+    public function create(int $workspaceId, User $actor, ?Role $actorRole, string $name, array $permissionNames): array
+    {
         $slug = $this->makeUniqueSlug($workspaceId, $name);
 
-        $this->permissionService->ensureCanGrant($actorRole, $permissionSlugs);
+        $this->permissionService->ensureCanGrant($actor, $actorRole, $permissionNames);
 
-        return DB::transaction(function () use ($workspaceId, $name, $slug, $permissionSlugs) {
-
+        return DB::transaction(function () use ($workspaceId, $name, $slug, $permissionNames) {
             $role = $this->roleRepository->create([
                 'workspace_id' => $workspaceId,
                 'name' => $name,
@@ -50,10 +44,7 @@ class RoleService
                 'is_system' => false,
             ]);
 
-            $this->roleRepository->syncPermissions(
-                $role,
-                $this->permissionRepository->getIdsBySlugs($permissionSlugs)
-            );
+            $this->roleRepository->syncPermissions($role, $permissionNames);
 
             return $this->present($role);
         });
@@ -61,75 +52,94 @@ class RoleService
 
     public function update(
         int $workspaceId,
-        Role $actorRole,
+        User $actor,
+        ?Role $actorRole,
         int $roleId,
         ?string $name,
-        ?array $permissionSlugs
+        ?array $permissionNames
     ): array {
-
         $role = $this->findOrFail($workspaceId, $roleId);
 
-        $this->ensureEditable($role, $actorRole);
+        $this->ensureEditable($role, $actor, $actorRole);
 
-        $data = [];
+        $data = $name === null ? [] : [
+            'name' => $name,
+            'slug' => $this->makeUniqueSlug($workspaceId, $name, $role->id),
+        ];
 
-        if ($name !== null) {
-            $data = [
-                'name' => $name,
-                'slug' => $this->makeUniqueSlug($workspaceId, $name, $role->id),
-            ];
+        if ($permissionNames !== null) {
+            $this->permissionService->ensureCanGrant($actor, $actorRole, $permissionNames);
         }
 
-        if ($permissionSlugs !== null) {
-            $this->permissionService->ensureCanGrant($actorRole, $permissionSlugs);
-        }
-
-        return DB::transaction(function () use ($role, $data, $permissionSlugs) {
-
+        return DB::transaction(function () use ($role, $data, $permissionNames) {
             if ($data !== []) {
                 $this->roleRepository->update($role, $data);
             }
 
-            if ($permissionSlugs !== null) {
-                $this->roleRepository->syncPermissions(
-                    $role,
-                    $this->permissionRepository->getIdsBySlugs($permissionSlugs)
-                );
+            if ($permissionNames !== null) {
+                $this->roleRepository->syncPermissions($role, $permissionNames);
             }
 
-            return $this->present($role);
+            return $this->present($role->refresh());
         });
     }
 
-    public function delete(int $workspaceId, Role $actorRole, int $roleId): void
+    public function delete(int $workspaceId, User $actor, ?Role $actorRole, int $roleId): void
     {
         $role = $this->findOrFail($workspaceId, $roleId);
 
-        $this->ensureEditable($role, $actorRole);
+        $this->ensureEditable($role, $actor, $actorRole);
 
         $membersCount = $this->roleRepository->countMembers($role);
 
         if ($membersCount > 0) {
-            throw new BusinessRuleException(
-                "This role is assigned to {$membersCount} member(s). Change their role first."
-            );
+            throw new BusinessRuleException(__('rbac.role_in_use', ['count' => $membersCount]));
         }
 
         $this->roleRepository->delete($role);
     }
 
-    private function ensureEditable(Role $role, Role $actorRole): void
+    /**
+     * Creates the Owner role and the default roles from config/rbac.php.
+     * Called once when a workspace is created. Returns the Owner role.
+     */
+    public function createSystemRoles(int $workspaceId): Role
+    {
+        $owner = $this->roleRepository->create([
+            'workspace_id' => $workspaceId,
+            'name' => config('rbac.owner.name'),
+            'slug' => Role::OWNER_SLUG,
+            'is_system' => true,
+        ]);
+
+        $this->roleRepository->syncPermissions($owner, Permission::values());
+
+        foreach (config('rbac.default_roles', []) as $slug => $definition) {
+            $role = $this->roleRepository->create([
+                'workspace_id' => $workspaceId,
+                'name' => $definition['name'],
+                'slug' => $slug,
+                'is_system' => false,
+            ]);
+
+            $this->roleRepository->syncPermissions($role, $definition['permissions']);
+        }
+
+        return $owner;
+    }
+
+    private function ensureEditable(Role $role, User $actor, ?Role $actorRole): void
     {
         if ($role->is_system) {
-            throw new BusinessRuleException('System roles cannot be modified.', 403);
+            throw new BusinessRuleException(__('rbac.system_role_locked'), 403);
         }
 
-        // Warna koi apne hi role me permissions add karke khud ko promote kar lega
-        if ($role->id === $actorRole->id) {
-            throw new BusinessRuleException('You cannot modify your own role.', 403);
+        // Otherwise anyone could promote themselves by editing their own role
+        if ($actorRole !== null && $role->id === $actorRole->id) {
+            throw new BusinessRuleException(__('rbac.cannot_edit_own_role'), 403);
         }
 
-        $this->permissionService->ensureCanManageRole($actorRole, $role);
+        $this->permissionService->ensureCanManageRole($actor, $actorRole, $role);
     }
 
     private function makeUniqueSlug(int $workspaceId, string $name, ?int $ignoreRoleId = null): string
@@ -137,14 +147,11 @@ class RoleService
         $slug = Str::slug($name);
 
         if ($slug === '') {
-            throw new BusinessRuleException('Role name must contain letters or numbers.');
+            throw new BusinessRuleException(__('rbac.invalid_role_name'));
         }
 
-        if (
-            $slug === Role::OWNER_SLUG
-            || $this->roleRepository->slugExists($workspaceId, $slug, $ignoreRoleId)
-        ) {
-            throw new BusinessRuleException('A role with this name already exists.');
+        if ($slug === Role::OWNER_SLUG || $this->roleRepository->slugExists($workspaceId, $slug, $ignoreRoleId)) {
+            throw new BusinessRuleException(__('rbac.role_exists'));
         }
 
         return $slug;
@@ -155,7 +162,7 @@ class RoleService
         $role = $this->roleRepository->findInWorkspace($workspaceId, $roleId);
 
         if (!$role) {
-            throw new BusinessRuleException('Role not found.', 404);
+            throw new BusinessRuleException(__('rbac.role_not_found'), 404);
         }
 
         return $role;
@@ -169,12 +176,10 @@ class RoleService
             'slug' => $role->slug,
             'is_system' => $role->is_system,
             'is_owner' => $role->isOwner(),
-            // Use data already loaded by the repository (with/withCount) — no extra query per role
             'members_count' => $role->users_count ?? $this->roleRepository->countMembers($role),
-            'permissions'   => $role->isOwner()
-                ? $this->permissionService->permissionsOf($role)    // owner = all permissions
-                : $role->permissions->pluck('slug')->all(),
-
+            'permissions' => $role->isOwner()
+                ? Permission::values()
+                : $this->roleRepository->getPermissionNames($role),
         ];
     }
 }

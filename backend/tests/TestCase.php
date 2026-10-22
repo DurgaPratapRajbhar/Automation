@@ -8,18 +8,20 @@ use RuntimeException;
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * RefreshDatabase migrate:fresh chalata hai — galat DB par chala to saara data udd jayega.
-     * Isliye in-memory sqlite ke alawa kisi bhi DB par tests ko yahin rok do.
+     * Stops every test before any trait (RefreshDatabase runs migrate:fresh) touches a real database.
+     * Done in setUpTraits() because a trait's beforeRefreshingDatabase() would override a method here.
      */
-    protected function beforeRefreshingDatabase()
+    protected function setUpTraits()
     {
         $connection = config('database.default');
         $database = config("database.connections.{$connection}.database");
 
         if ($connection !== 'sqlite' || $database !== ':memory:') {
             throw new RuntimeException(
-                "Refusing to refresh database [{$connection}:{$database}] — tests must use in-memory sqlite."
+                "Refusing to run tests on [{$connection}:{$database}]: tests must use in-memory sqlite."
             );
         }
+
+        return parent::setUpTraits();
     }
 }

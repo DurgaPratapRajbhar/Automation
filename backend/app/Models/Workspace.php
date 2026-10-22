@@ -16,13 +16,12 @@ class Workspace extends Model
         'status',
     ];
 
-  public function users(): BelongsToMany
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(
             User::class,
             'workspace_user'
         )
-        ->withPivot('role_id')
         ->withTimestamps();
     }
 

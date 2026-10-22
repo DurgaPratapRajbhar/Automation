@@ -2,20 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+/**
+ * A role inside one workspace (Spatie team = workspace).
+ */
+class Role extends SpatieRole
 {
     public const OWNER_SLUG = 'owner';
-
-    protected $fillable = [
-        'workspace_id',
-        'name',
-        'slug',
-        'is_system',
-    ];
 
     protected function casts(): array
     {
@@ -29,26 +24,7 @@ class Role extends Model
         return $this->belongsTo(Workspace::class);
     }
 
-    public function permissions(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Permission::class,
-            'role_permission'
-        );
-    }
-
-    // Is role wale workspace members
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            User::class,
-            'workspace_user',
-            'role_id',
-            'user_id'
-        );
-    }
-
-    // Owner = workspace ka super admin, saari permissions automatically milti hain
+    // Owner = workspace admin; system roles cannot be edited or deleted
     public function isOwner(): bool
     {
         return $this->is_system && $this->slug === self::OWNER_SLUG;

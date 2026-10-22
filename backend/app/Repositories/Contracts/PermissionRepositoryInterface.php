@@ -2,15 +2,14 @@
 
 namespace App\Repositories\Contracts;
 
-use Illuminate\Support\Collection;
-
 interface PermissionRepositoryInterface
 {
-    public function getAllIds(): array;
+    /** @return list<string> */
+    public function getAllNames(): array;
 
-    public function getAll(): Collection;
+    /** @param list<string> $names @return int number created */
+    public function createMissing(array $names): int;
 
-    public function getAllSlugs(): array;
-
-    public function getIdsBySlugs(array $slugs): array;
+    /** @param list<string> $names @return int number deleted */
+    public function deleteExcept(array $names): int;
 }

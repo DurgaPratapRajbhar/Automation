@@ -12,7 +12,7 @@ class AuditLogRepository implements AuditLogRepositoryInterface
         return AuditLog::create($data);
     }
 
-    public function cursorForWorkspace(int $workspaceId, int $perPage = 25): CursorPaginator
+    public function cursorForWorkspace(int $workspaceId, int $perPage): CursorPaginator
 {
    
        return AuditLog::query()

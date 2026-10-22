@@ -41,6 +41,7 @@ class RoleController extends Controller
 
         $role = $this->roleService->create(
             $workspace->id,
+            $request->user(),
             $request->attributes->get('workspace_role'),
             $request->validated('name'),
             $request->validated('permissions')
@@ -59,6 +60,7 @@ class RoleController extends Controller
 
         $role = $this->roleService->update(
             $workspace->id,
+            $request->user(),
             $request->attributes->get('workspace_role'),
             $roleId,
             $request->validated('name'),
@@ -78,6 +80,7 @@ class RoleController extends Controller
 
         $this->roleService->delete(
             $workspace->id,
+            $request->user(),
             $request->attributes->get('workspace_role'),
             $roleId
         );

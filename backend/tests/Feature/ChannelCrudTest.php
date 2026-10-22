@@ -25,7 +25,7 @@ function whatsappChannelPayload(string $phoneNumberId = '1211076188745310'): arr
 }
 
 test('permissions exist right after migrate (no seeder needed)', function () {
-    expect(App\Models\Permission::count())->toBe(31);
+    expect(App\Models\Permission::count())->toBe(count(App\Enums\Permission::cases()));
 });
 
 test('owner can create, list, update and delete a channel', function () {

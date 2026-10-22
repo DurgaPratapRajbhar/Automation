@@ -2,21 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Models\Permission as SpatiePermission;
 
-class Permission extends Model
+/**
+ * Rows come from App\Enums\Permission via `php artisan permissions:sync`.
+ */
+class Permission extends SpatiePermission
 {
-    protected $fillable = [
-        'name',
-        'slug',
-    ];
-
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Role::class,
-            'role_permission'
-        );
-    }
 }

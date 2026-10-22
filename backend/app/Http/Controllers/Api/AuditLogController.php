@@ -19,7 +19,7 @@ class AuditLogController extends Controller
 
         return response()->json([
             'success' => true,
-            ...$this->auditLogService->list($workspace->id, (int) $request->query('per_page', 25))->toArray(),
+            ...$this->auditLogService->list($workspace->id, (int) $request->query('per_page', config('pagination.per_page')))->toArray(),
         ]);
     }
 }

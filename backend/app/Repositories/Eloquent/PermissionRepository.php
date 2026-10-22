@@ -4,27 +4,33 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Permission;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
-use Illuminate\Support\Collection;
 
 class PermissionRepository implements PermissionRepositoryInterface
 {
-    public function getAllIds(): array
+    public function getAllNames(): array
     {
-        return Permission::pluck('id')->all();
+        return Permission::orderBy('id')->pluck('name')->all();
     }
 
-    public function getAll(): Collection
+    public function createMissing(array $names): int
     {
-        return Permission::orderBy('id')->get(['id', 'name', 'slug']);
+        $existing = Permission::whereIn('name', $names)->pluck('name')->all();
+        $missing = array_diff($names, $existing);
+
+        foreach ($missing as $name) {
+            Permission::create(['name' => $name]);
+        }
+
+        return count($missing);
     }
 
-    public function getAllSlugs(): array
+    public function deleteExcept(array $names): int
     {
-        return Permission::orderBy('id')->pluck('slug')->all();
-    }
+        $stale = Permission::whereNotIn('name', $names)->get();
 
-    public function getIdsBySlugs(array $slugs): array
-    {
-        return Permission::whereIn('slug', $slugs)->pluck('id')->all();
+        // Model delete (not a bulk query) so Spatie also detaches it from roles
+        $stale->each->delete();
+
+        return $stale->count();
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\JwtAuthMiddleware;
 use App\Http\Middleware\ResolveWorkspace;
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Exceptions\BusinessRuleException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => JwtAuthMiddleware::class,
             'workspace' => ResolveWorkspace::class,
             'permission' => CheckPermission::class,
+            'super.admin' => EnsureSuperAdmin::class,
         ]);
 
         
@@ -33,6 +35,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*')
         );
+
+        // Expected business errors are answered to the client, not written to the error log
+        $exceptions->dontReport(BusinessRuleException::class);
 
         $exceptions->render(function (BusinessRuleException $e) {
             return response()->json([
