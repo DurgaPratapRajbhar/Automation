@@ -2,14 +2,18 @@
 
 namespace App\Repositories\Contracts;
 
+use Illuminate\Support\Collection;
+
 interface PermissionRepositoryInterface
 {
-    /** @return list<string> */
     public function getAllNames(): array;
 
-    /** @param list<string> $names @return int number created */
+    // All permissions ordered by module, for the permission tree
+    public function getAllByModule(): Collection;
+
+    // Returns how many were created
     public function createMissing(array $names): int;
 
-    /** @param list<string> $names @return int number deleted */
+    // Returns how many were deleted
     public function deleteExcept(array $names): int;
 }

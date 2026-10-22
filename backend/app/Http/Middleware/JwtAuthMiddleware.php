@@ -11,12 +11,6 @@ use Throwable;
 
 class JwtAuthMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
-
     public function __construct(
         private JwtService $jwtService,
         private UserRepositoryInterface $userRepository

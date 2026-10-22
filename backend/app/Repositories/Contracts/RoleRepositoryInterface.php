@@ -24,10 +24,8 @@ interface RoleRepositoryInterface
 
     public function delete(Role $role): void;
 
-    /** @param list<string> $permissionNames */
     public function syncPermissions(Role $role, array $permissionNames): void;
 
-    /** @return list<string> */
     public function getPermissionNames(Role $role): array;
 
     public function countMembers(Role $role): int;

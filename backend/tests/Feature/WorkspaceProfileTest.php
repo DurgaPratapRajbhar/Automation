@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 
@@ -67,7 +66,7 @@ test('invalid profile input is rejected', function () {
 
 test('profile permissions are enforced', function () {
     $owner = registerOwner($this);
-    $viewer = memberWithPermissions($this, $owner, 'Profile Viewer', [Permission::WorkspaceView->value], 'pv@example.com');
+    $viewer = memberWithPermissions($this, $owner, 'Profile Viewer', ['workspace.view'], 'pv@example.com');
     $headers = headersFor($viewer['token'], $viewer['workspace_id']);
 
     $this->getJson('/api/workspace/profile', $headers)->assertOk();

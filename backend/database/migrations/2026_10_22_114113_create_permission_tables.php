@@ -26,6 +26,8 @@ return new class extends Migration
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
             $table->id(); // permission id
             $table->string('name');
+            // Group for the permission tree, e.g. "customers" for "customers.view"
+            $table->string('module');
             $table->string('guard_name');
             $table->timestamps();
 

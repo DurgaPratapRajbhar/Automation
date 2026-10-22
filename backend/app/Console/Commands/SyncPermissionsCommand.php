@@ -9,7 +9,7 @@ class SyncPermissionsCommand extends Command
 {
     protected $signature = 'permissions:sync';
 
-    protected $description = 'Make the permissions table match App\Enums\Permission';
+    protected $description = 'Create permissions for new routes and remove those of deleted routes';
 
     public function handle(PermissionSyncService $permissionSync): int
     {

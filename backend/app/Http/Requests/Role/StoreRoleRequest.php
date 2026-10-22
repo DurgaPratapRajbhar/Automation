@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Role;
 
-use App\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+// Used for workspace roles and for super admin role templates
 class StoreRoleRequest extends FormRequest
 {
     public function authorize(): bool
@@ -18,7 +18,7 @@ class StoreRoleRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'permissions' => ['present', 'array'],
-            'permissions.*' => ['string', 'distinct', Rule::enum(Permission::class)],
+            'permissions.*' => ['string', 'distinct', Rule::exists('permissions', 'name')],
         ];
     }
 }

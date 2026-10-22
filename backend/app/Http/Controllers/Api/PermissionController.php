@@ -12,12 +12,12 @@ class PermissionController extends Controller
         private WorkspacePermissionService $permissionService
     ) {}
 
-    // Role banate waqt frontend me checkboxes dikhane ke liye
+    // Tree for the role form checkboxes
     public function index(): JsonResponse
     {
         return response()->json([
             'success' => true,
-            'data' => $this->permissionService->groupedPermissions(),
+            'data' => $this->permissionService->permissionTree(),
         ]);
     }
 }

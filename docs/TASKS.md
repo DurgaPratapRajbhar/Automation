@@ -43,7 +43,7 @@
 | T3 | Auth: register, login, JWT + refresh, logout, me | ✅ Automation me pehle se | | | |
 | T4 | Auth: phone OTP (send/verify, throttle) | ⬜ | | | |
 | T5 | Shop profile: workspace = dukaan; phone, pata, state, GST status, GSTIN, UPI ID + `GET/PUT /workspace/profile` | ✅ | 5 tests | ⬜ | 2026-10-23 |
-| T6 | Roles + permissions: Spatie (teams), Permission enum, `permissions:sync`, default roles, Super Admin + admin API | ✅ | 37 pass | ⬜ | 2026-10-22 |
+| T6 | Roles + permissions: Spatie (teams), permission = route ka naam (fail closed), `permissions:sync`, permission tree, role templates (DB), Super Admin + admin API | ✅ | 47 pass | ⬜ | 2026-10-22 |
 | T7 | Members (jodna/hatana/role, aakhri owner guard) | ✅ Spatie pe shift | 37 pass | ⬜ | 2026-10-22 |
 | T8 | Modules ON/OFF + `module:` middleware | ⬜ | | | |
 | T9 | Customers CRUD + search + GSTIN/state rule | ✅ | 8 tests | ⬜ | 2026-10-22 |
@@ -91,7 +91,8 @@
 ## Phase G: API ke baad
 | # | Task | Status |
 |---|---|---|
-| T34 | Next.js PWA (design canvas ke screens) | ⬜ |
+| T34 | Next.js frontend (JS, Server Components + Server Actions, sirf next/react/tailwind): login/register, shop app (dashboard, customers, roles + permission tree, members, shop profile), Super Admin (workspaces, role templates). Browser me test | ✅ 2026-10-22 |
+| T34b | PWA (install, offline), Hindi UI, workspace switcher | ⬜ |
 | T35 | Python AI service: STT + parse + MCP tools + item RAG | ⬜ |
 | T36 | LangGraph: Order agent, Jev router, Dukaan Jarvis | ⬜ |
 | T37 | Deploy: k3s on VPS, storage, backup | ⬜ |
@@ -101,6 +102,7 @@
 ## Log (har task ke baad ek line)
 | Tareekh | Task | Kya hua |
 |---|---|---|
+| 2026-10-22 | T6, T34 | Permissions route-name se (Enum/config hate), role templates; frontend banaya aur browser me poora test kiya (register, login, staff permissions, customers CRUD, roles tree, members, profile, admin suspend/templates). 47 backend tests pass, `next build` saaf |
 | 2026-10-23 | T5 | Dukaan profile + shared GstinService (customers bhi isi se) + UpiId rule. Sab tests pass. Commit baaki |
 | 2026-10-22 | T9, T6, T7 | Customers module; purana RBAC hata ke Spatie (teams) + Permission enum + Super Admin; test env fix (tests pehle dev Postgres pe chal rahe the). 37 tests pass. Commit baaki |
 | 2026-10-22 | - | FEATURES.md + TASKS.md bane. Koi code nahi likha |

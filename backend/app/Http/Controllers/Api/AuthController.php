@@ -44,6 +44,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'is_super_admin' => $user->isSuperAdmin(),
                 ],
                 'workspaces' => $this->authService->workspacesFor($user->id),
             ],

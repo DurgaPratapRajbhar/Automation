@@ -18,7 +18,7 @@ test('owner can do everything and sees all permissions', function () {
     $me = $this->getJson('/api/workspace/me', $headers)->assertOk();
 
     expect($me->json('data.role.is_owner'))->toBeTrue()
-        ->and($me->json('data.permissions'))->toHaveCount(count(App\Enums\Permission::cases()));
+        ->and($me->json('data.permissions'))->toHaveCount(count(app(App\Services\RoutePermissionResolver::class)->all()));
 
     $this->getJson('/api/roles', $headers)->assertOk();
     $this->getJson('/api/members', $headers)->assertOk();
@@ -142,7 +142,7 @@ test('role in use cannot be deleted until members are moved', function () {
     $owner = registerOwner($this);
     $headers = headersFor($owner['token'], $owner['workspace_id']);
 
-    $agent = memberWithPermissions($this, $owner, 'Agent', ['conversations.view'], 'agent@example.com');
+    $agent = memberWithPermissions($this, $owner, 'Agent', ['customers.view'], 'agent@example.com');
     $otherRoleId = $this->postJson('/api/roles', ['name' => 'Support', 'permissions' => []], $headers)->json('data.id');
 
     $this->deleteJson("/api/roles/{$agent['role_id']}", [], $headers)->assertUnprocessable();

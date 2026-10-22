@@ -11,13 +11,13 @@ Kaam `D:\Sass\Automation\backend` me hi hota hai. **Workspace = dukaan** (header
 
 | Layer | Kaam | Example |
 |---|---|---|
-| `routes/api.php` | URL + `jwt.auth` + `workspace` + permission | `Permission::CustomersView->middleware()` |
+| `routes/api.php` | URL + naam. `permission` group pe; route ka naam hi permission hai | `->name('customers.index')` → `customers.view` |
 | `app/Http/Requests/<Module>/` | Validation (FormRequest), shared rules `app/Rules` | `StoreCustomerRequest` |
 | `app/Http/Controllers/Api/` | Sirf request lo, service bulao, JSON do | `{ success, message, data }` |
 | `app/Services/` | Business rules, `BusinessRuleException` throw | `CustomerService` |
 | `app/Repositories/Contracts/` + `Eloquent/` | Interface + DB ka kaam, `AppServiceProvider` me bind | `CustomerRepository` |
 | `app/Events` / `app/Listeners` | Module aapas me events se baat karein | `MemberRoleChanged` |
-| `app/Enums/Permission.php` | Nayi permissions yahan, phir `php artisan permissions:sync` | `CustomersView` |
+| `php artisan permissions:sync` | Routes se permissions DB me (tree: module → permission). Default roles = Super Admin ke role templates (DB) | `customers.create` |
 | `lang/en/<module>.php`, `config/` | Messages aur numbers, code me hardcode nahi | `customers.php` |
 | `tests/Feature/` | Pest: CRUD, permission, dusre workspace ka data na dikhe | `CustomerCrudTest.php` |
 

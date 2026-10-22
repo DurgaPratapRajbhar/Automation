@@ -4,21 +4,26 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Permission;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
+use Illuminate\Support\Collection;
 
 class PermissionRepository implements PermissionRepositoryInterface
 {
     public function getAllNames(): array
     {
-        return Permission::orderBy('id')->pluck('name')->all();
+        return Permission::orderBy('name')->pluck('name')->all();
+    }
+
+    public function getAllByModule(): Collection
+    {
+        return Permission::orderBy('module')->orderBy('name')->get(['id', 'name', 'module']);
     }
 
     public function createMissing(array $names): int
     {
-        $existing = Permission::whereIn('name', $names)->pluck('name')->all();
-        $missing = array_diff($names, $existing);
+        $missing = array_diff($names, Permission::whereIn('name', $names)->pluck('name')->all());
 
         foreach ($missing as $name) {
-            Permission::create(['name' => $name]);
+            Permission::create(['name' => $name, 'module' => explode('.', $name)[0]]);
         }
 
         return count($missing);

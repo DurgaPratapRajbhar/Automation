@@ -1,2 +1,5 @@
+# Local test accounts — never committed
+*.local.md
+
 # Postman environment with real secrets/tokens — local only
 docs/postman/*.local.postman_environment.json

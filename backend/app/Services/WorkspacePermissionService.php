@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
-use App\Enums\Permission;
 use App\Exceptions\BusinessRuleException;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use Illuminate\Support\Str;
 
 /**
  * Rules for "who may give which power to whom" inside a workspace.
@@ -15,14 +17,14 @@ use App\Repositories\Contracts\RoleRepositoryInterface;
 class WorkspacePermissionService
 {
     public function __construct(
-        private RoleRepositoryInterface $roleRepository
+        private RoleRepositoryInterface $roleRepository,
+        private PermissionRepositoryInterface $permissionRepository
     ) {}
 
-    /** @return list<string> */
     public function permissionsOf(User $user, ?Role $role): array
     {
-        if ($this->hasFullAccess($user, $role)) {
-            return Permission::values();
+        if ($this->isOwnerOrSuperAdmin($user, $role)) {
+            return $this->permissionRepository->getAllNames();
         }
 
         return $role ? $this->roleRepository->getPermissionNames($role) : [];
@@ -31,7 +33,7 @@ class WorkspacePermissionService
     // An actor cannot give a permission they do not have
     public function ensureCanGrant(User $actor, ?Role $actorRole, array $permissionNames): void
     {
-        if ($this->hasFullAccess($actor, $actorRole)) {
+        if ($this->isOwnerOrSuperAdmin($actor, $actorRole)) {
             return;
         }
 
@@ -48,7 +50,7 @@ class WorkspacePermissionService
     // An actor cannot edit, delete or assign a role more powerful than their own
     public function ensureCanManageRole(User $actor, ?Role $actorRole, Role $targetRole): void
     {
-        if ($this->hasFullAccess($actor, $actorRole)) {
+        if ($this->isOwnerOrSuperAdmin($actor, $actorRole)) {
             return;
         }
 
@@ -68,30 +70,23 @@ class WorkspacePermissionService
 
     public function isOwnerOrSuperAdmin(User $user, ?Role $role): bool
     {
-        return $this->hasFullAccess($user, $role);
-    }
-
-    // For the role form: permissions grouped by module
-    public function groupedPermissions(): array
-    {
-        $groups = [];
-
-        foreach (Permission::cases() as $permission) {
-            $groups[$permission->module()][] = [
-                'slug' => $permission->value,
-                'name' => $permission->label(),
-            ];
-        }
-
-        return array_map(
-            fn (string $module, array $permissions) => ['module' => $module, 'permissions' => $permissions],
-            array_keys($groups),
-            array_values($groups)
-        );
-    }
-
-    private function hasFullAccess(User $user, ?Role $role): bool
-    {
         return $user->isSuperAdmin() || ($role?->isOwner() ?? false);
+    }
+
+    // Permission tree for the role form: module -> its permissions
+    public function permissionTree(): array
+    {
+        return $this->permissionRepository->getAllByModule()
+            ->groupBy('module')
+            ->map(fn ($permissions, $module) => [
+                'module' => $module,
+                'label' => Str::headline($module),
+                'permissions' => $permissions->map(fn (Permission $permission) => [
+                    'name' => $permission->name,
+                    'label' => Str::headline(Str::afterLast($permission->name, '.')),
+                ])->values()->all(),
+            ])
+            ->values()
+            ->all();
     }
 }

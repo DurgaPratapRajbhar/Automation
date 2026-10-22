@@ -38,6 +38,9 @@ use App\Repositories\Eloquent\MessageRepository;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
 use App\Repositories\Eloquent\CustomerRepository;
 
+use App\Repositories\Contracts\RoleTemplateRepositoryInterface;
+use App\Repositories\Eloquent\RoleTemplateRepository;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -98,6 +101,11 @@ class AppServiceProvider extends ServiceProvider
             $this->app->bind(
                 CustomerRepositoryInterface::class,
                 CustomerRepository::class
+            );
+
+            $this->app->bind(
+                RoleTemplateRepositoryInterface::class,
+                RoleTemplateRepository::class
             );
 
     }

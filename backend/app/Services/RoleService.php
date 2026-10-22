@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
-use App\Enums\Permission;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Role;
 use App\Models\User;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\RoleTemplateRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -14,6 +15,8 @@ class RoleService
 {
     public function __construct(
         private RoleRepositoryInterface $roleRepository,
+        private PermissionRepositoryInterface $permissionRepository,
+        private RoleTemplateRepositoryInterface $templateRepository,
         private WorkspacePermissionService $permissionService
     ) {}
 
@@ -99,30 +102,30 @@ class RoleService
         $this->roleRepository->delete($role);
     }
 
-    /**
-     * Creates the Owner role and the default roles from config/rbac.php.
-     * Called once when a workspace is created. Returns the Owner role.
-     */
+    // New workspace: Owner (all permissions) + a copy of each super admin role template
     public function createSystemRoles(int $workspaceId): Role
     {
+        $allPermissions = $this->permissionRepository->getAllNames();
+
         $owner = $this->roleRepository->create([
             'workspace_id' => $workspaceId,
-            'name' => config('rbac.owner.name'),
+            'name' => __('rbac.owner_role_name'),
             'slug' => Role::OWNER_SLUG,
             'is_system' => true,
         ]);
 
-        $this->roleRepository->syncPermissions($owner, Permission::values());
+        $this->roleRepository->syncPermissions($owner, $allPermissions);
 
-        foreach (config('rbac.default_roles', []) as $slug => $definition) {
+        foreach ($this->templateRepository->all() as $template) {
             $role = $this->roleRepository->create([
                 'workspace_id' => $workspaceId,
-                'name' => $definition['name'],
-                'slug' => $slug,
+                'name' => $template->name,
+                'slug' => $template->slug,
                 'is_system' => false,
             ]);
 
-            $this->roleRepository->syncPermissions($role, $definition['permissions']);
+            // Skip permissions whose routes were removed since the template was saved
+            $this->roleRepository->syncPermissions($role, array_values(array_intersect($template->permissions, $allPermissions)));
         }
 
         return $owner;
@@ -178,7 +181,7 @@ class RoleService
             'is_owner' => $role->isOwner(),
             'members_count' => $role->users_count ?? $this->roleRepository->countMembers($role),
             'permissions' => $role->isOwner()
-                ? Permission::values()
+                ? $this->permissionRepository->getAllNames()
                 : $this->roleRepository->getPermissionNames($role),
         ];
     }

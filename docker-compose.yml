@@ -38,6 +38,28 @@ services:
         - redis
       env_file:
         - ./backend/.env
+
+   frontend:
+      build:
+        context: ./frontend
+      container_name: automation-frontend
+      restart: unless-stopped
+      working_dir: /app
+      volumes:
+        - ./frontend:/app
+        # Keep these inside the container (fast, and no clash with files on Windows)
+        - /app/node_modules
+        - /app/.next
+      ports:
+        - "3000:3000"
+      environment:
+        BACKEND_URL: http://backend:8000
+        # File watching on a Windows bind mount
+        WATCHPACK_POLLING: "true"
+        NEXT_TELEMETRY_DISABLED: "1"
+      depends_on:
+        - backend
+
 volumes:
   postgres_data:
   redis_data:

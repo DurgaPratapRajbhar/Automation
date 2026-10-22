@@ -4,8 +4,8 @@ use App\Services\PermissionSyncService;
 use Illuminate\Database\Migrations\Migration;
 
 /**
- * Fills the permissions table from App\Enums\Permission on a fresh database.
- * Later changes to the enum are applied with `php artisan permissions:sync`.
+ * Fills the permissions table from the protected routes on a fresh database.
+ * After adding or removing routes run `php artisan permissions:sync`.
  */
 return new class extends Migration
 {

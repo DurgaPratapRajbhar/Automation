@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class RoleTemplate extends Model
+{
+    protected $fillable = [
+        'name',
+        'slug',
+        'permissions',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'permissions' => 'array',
+        ];
+    }
+}

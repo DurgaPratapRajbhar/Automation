@@ -2,26 +2,23 @@
 
 namespace App\Services;
 
-use App\Enums\Permission;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * Makes the permissions table match App\Enums\Permission.
- */
+// Makes the permissions table match the protected routes
 class PermissionSyncService
 {
     public function __construct(
+        private RoutePermissionResolver $resolver,
         private PermissionRepositoryInterface $permissionRepository,
         private RoleRepositoryInterface $roleRepository,
         private PermissionRegistrar $permissionRegistrar
     ) {}
 
-    /** @return array{created: int, deleted: int} */
     public function sync(): array
     {
-        $names = Permission::values();
+        $names = $this->resolver->all();
 
         $created = $this->permissionRepository->createMissing($names);
         $deleted = $this->permissionRepository->deleteExcept($names);
