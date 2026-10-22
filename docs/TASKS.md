@@ -42,7 +42,7 @@
 |---|---|---|---|---|---|
 | T3 | Auth: register, login, JWT + refresh, logout, me | ✅ Automation me pehle se | | | |
 | T4 | Auth: phone OTP (send/verify, throttle) | ⬜ | | | |
-| T5 | Shop: workspace hi dukaan hai (`X-Workspace-Id`). Shop type, GST fields baaki | 🔄 | | | |
+| T5 | Shop profile: workspace = dukaan; phone, pata, state, GST status, GSTIN, UPI ID + `GET/PUT /workspace/profile` | ✅ | 5 tests | ⬜ | 2026-10-23 |
 | T6 | Roles + permissions: Spatie (teams), Permission enum, `permissions:sync`, default roles, Super Admin + admin API | ✅ | 37 pass | ⬜ | 2026-10-22 |
 | T7 | Members (jodna/hatana/role, aakhri owner guard) | ✅ Spatie pe shift | 37 pass | ⬜ | 2026-10-22 |
 | T8 | Modules ON/OFF + `module:` middleware | ⬜ | | | |
@@ -101,6 +101,7 @@
 ## Log (har task ke baad ek line)
 | Tareekh | Task | Kya hua |
 |---|---|---|
+| 2026-10-23 | T5 | Dukaan profile + shared GstinService (customers bhi isi se) + UpiId rule. Sab tests pass. Commit baaki |
 | 2026-10-22 | T9, T6, T7 | Customers module; purana RBAC hata ke Spatie (teams) + Permission enum + Super Admin; test env fix (tests pehle dev Postgres pe chal rahe the). 37 tests pass. Commit baaki |
 | 2026-10-22 | - | FEATURES.md + TASKS.md bane. Koi code nahi likha |
 | 2026-10-22 | - | Faisle: D1, D3, D4, D5, D6 final. D2 (naam) baad me. T0 "next task" ka intezaar |

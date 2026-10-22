@@ -20,4 +20,6 @@ interface WorkspaceRepositoryInterface
     public function cursorAll(?string $search, int $perPage): CursorPaginator;
 
     public function updateStatus(Workspace $workspace, WorkspaceStatus $status): Workspace;
+
+    public function update(Workspace $workspace, array $data): Workspace;
 }

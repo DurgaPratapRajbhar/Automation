@@ -67,7 +67,12 @@ class WorkspaceRepository implements WorkspaceRepositoryInterface
 
     public function updateStatus(Workspace $workspace, WorkspaceStatus $status): Workspace
     {
-        $workspace->update(['status' => $status->value]);
+        return $this->update($workspace, ['status' => $status->value]);
+    }
+
+    public function update(Workspace $workspace, array $data): Workspace
+    {
+        $workspace->update($data);
 
         return $workspace;
     }

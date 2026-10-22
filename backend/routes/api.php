@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\WorkspaceAccessController;
+use App\Http\Controllers\Api\WorkspaceProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -38,6 +39,12 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
 
     // Frontend: which pages / buttons to show
     Route::get('/workspace/me', [WorkspaceAccessController::class, 'show']);
+
+    // Shop details: contact, GST, UPI
+    Route::get('/workspace/profile', [WorkspaceProfileController::class, 'show'])
+        ->middleware(Permission::WorkspaceView->middleware());
+    Route::put('/workspace/profile', [WorkspaceProfileController::class, 'update'])
+        ->middleware(Permission::WorkspaceEdit->middleware());
 
     // Permission checkboxes for the role form
     Route::get('/permissions', [PermissionController::class, 'index'])

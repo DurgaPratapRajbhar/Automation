@@ -10,7 +10,8 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 class CustomerService
 {
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository
+        private CustomerRepositoryInterface $customerRepository,
+        private GstinService $gstinService
     ) {}
 
     public function list(int $workspaceId, ?string $search, int $perPage): CursorPaginator
@@ -29,7 +30,7 @@ class CustomerService
 
     public function create(int $workspaceId, array $data): array
     {
-        $data = $this->normalizeTax($data);
+        $data = $this->gstinService->applyStateCode($data);
 
         if (!empty($data['phone'])) {
             $this->ensurePhoneAvailable($workspaceId, $data['phone']);
@@ -46,7 +47,7 @@ class CustomerService
 
         // Check GSTIN and state together, using the stored value for the one not sent
         if (array_key_exists('gstin', $data) || array_key_exists('state_code', $data)) {
-            $data = $this->normalizeTax([
+            $data = $this->gstinService->applyStateCode([
                 'gstin' => $customer->gstin,
                 'state_code' => $customer->state_code,
                 ...$data,
@@ -64,25 +65,6 @@ class CustomerService
     {
         // TODO when khata/invoices exist: block delete while the customer has a balance
         $this->customerRepository->delete($this->findOrFail($workspaceId, $customerId));
-    }
-
-    // The first 2 digits of a GSTIN are the state code: fill it in, or reject a mismatch
-    private function normalizeTax(array $data): array
-    {
-        if (empty($data['gstin'])) {
-            return $data;
-        }
-
-        $data['gstin'] = strtoupper($data['gstin']);
-        $gstinState = substr($data['gstin'], 0, 2);
-
-        if (empty($data['state_code'])) {
-            $data['state_code'] = $gstinState;
-        } elseif ($data['state_code'] !== $gstinState) {
-            throw new BusinessRuleException(__('customers.gstin_state_mismatch'));
-        }
-
-        return $data;
     }
 
     private function ensurePhoneAvailable(int $workspaceId, string $phone, ?int $ignoreCustomerId = null): void

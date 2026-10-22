@@ -14,6 +14,12 @@ class Workspace extends Model
         'slug',
         'type',
         'status',
+        'phone',
+        'address',
+        'state_code',
+        'gst_status',
+        'gstin',
+        'upi_id',
     ];
 
     public function users(): BelongsToMany
