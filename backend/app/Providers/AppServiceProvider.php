@@ -21,6 +21,17 @@ use App\Repositories\Eloquent\PermissionRepository;
 use App\Repositories\Contracts\MemberRepositoryInterface;
 use App\Repositories\Eloquent\MemberRepository;
 
+use App\Repositories\Contracts\ChannelRepositoryInterface;
+use App\Repositories\Eloquent\ChannelRepository;
+
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Eloquent\AuditLogRepository;
+
+use App\Repositories\Contracts\ConversationRepositoryInterface;
+use App\Repositories\Eloquent\ConversationRepository;
+
+use App\Repositories\Contracts\MessageRepositoryInterface;
+use App\Repositories\Eloquent\MessageRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -58,6 +69,27 @@ class AppServiceProvider extends ServiceProvider
                 MemberRepositoryInterface::class,
                 MemberRepository::class
             );
+
+            $this->app->bind(
+                ChannelRepositoryInterface::class,
+                ChannelRepository::class
+            );
+
+            $this->app->bind(
+                AuditLogRepositoryInterface::class,
+                AuditLogRepository::class
+            );
+
+            $this->app->bind(
+                ConversationRepositoryInterface::class,
+                ConversationRepository::class
+            );
+
+            $this->app->bind(
+                MessageRepositoryInterface::class,
+                MessageRepository::class
+            );
+
     }
 
     /**

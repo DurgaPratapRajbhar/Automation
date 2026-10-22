@@ -1,16 +1,17 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Support;
 
-use App\Models\Permission;
-use Illuminate\Database\Seeder;
-
-class PermissionSeeder extends Seeder
+/**
+ * App ki saari permissions ki master list.
+ * Ye code ka hissa hai (routes inhi slugs par depend karte hain), isliye inka CRUD API nahi hai.
+ * Nayi permission chahiye -> yahan add karo + ek nayi migration jo PermissionCatalog::sync() chalaye.
+ */
+class PermissionCatalog
 {
-    public function run(): void
+    public static function all(): array
     {
-        $permissions = [
-
+        return [
             // Members
             ['name' => 'View Members', 'slug' => 'members.view'],
             ['name' => 'Create Members', 'slug' => 'members.create'],
@@ -60,12 +61,5 @@ class PermissionSeeder extends Seeder
             ['name' => 'Edit Roles', 'slug' => 'roles.edit'],
             ['name' => 'Delete Roles', 'slug' => 'roles.delete'],
         ];
-
-        foreach ($permissions as $permission) {
-            Permission::updateOrCreate(
-                ['slug' => $permission['slug']],
-                ['name' => $permission['name']]
-            );
-        }
     }
 }

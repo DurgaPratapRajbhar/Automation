@@ -11,14 +11,11 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Sirf local dev ke liye dummy data.
+     * Permissions migration se aati hain; channels/roles/members API (CRUD) se bante hain.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        $this->call(PermissionSeeder::class);
-
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

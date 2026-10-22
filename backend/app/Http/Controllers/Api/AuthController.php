@@ -45,6 +45,7 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                 ],
+                'workspaces' => $this->authService->workspacesFor($user->id),
             ],
         ]);
     }

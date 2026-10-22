@@ -1,0 +1,1040 @@
+{
+  "info": {
+    "name": "Automation API",
+    "description": "Laravel backend — Auth, Workspace RBAC (Roles/Members), Channels, WhatsApp Webhook.\n\nOrder: 1) Auth → Register (ya Login) — tokens + workspace_id khud save ho jaate hain. 2) Baaki requests chalao.\n\nSaare variables ENVIRONMENT me hain (collection variables nahi). Environment 'Automation Local' select karna zaroori hai.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register (Owner + Workspace)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "if (res.success) {",
+                  "  pm.environment.set('access_token', res.data.access_token);",
+                  "  pm.environment.set('refresh_token', res.data.refresh_token);",
+                  "  pm.environment.set('workspace_id', res.data.workspace.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Owner\",\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\",\n  \"password_confirmation\": \"{{owner_password}}\",\n  \"workspace_name\": \"My Business\",\n  \"workspace_type\": \"business\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "if (res.success) {",
+                  "  pm.environment.set('access_token', res.data.access_token);",
+                  "  pm.environment.set('refresh_token', res.data.refresh_token);",
+                  "}",
+                  "// Login ab user ke workspaces bhejta hai -> pehla workspace auto-select",
+                  "if (res.success && res.data.workspaces && res.data.workspaces.length) pm.environment.set(\"workspace_id\", res.data.workspaces[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.environment.set('access_token', res.data.access_token);",
+                  "  pm.environment.set('refresh_token', res.data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Workspace Access",
+      "item": [
+        {
+          "name": "My Role & Permissions (frontend page gating)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workspace/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "workspace",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "All Permissions (grouped)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "permissions"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Roles",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Role (Viewer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) pm.environment.set('role_id', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Viewer\",\n  \"permissions\": [\"members.view\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/roles/{{role_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "{{role_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Role (name + permissions)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sales Agent\",\n  \"permissions\": [\"members.view\", \"conversations.view\", \"conversations.reply\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/roles/{{role_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "{{role_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/roles/{{role_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "{{role_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Members",
+      "item": [
+        {
+          "name": "List Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Member (new user)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) pm.environment.set('member_user_id', res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@example.com\",\n  \"name\": \"Staff One\",\n  \"password\": \"password123\",\n  \"role_id\": {{role_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Member (existing user — sirf email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"already-registered@example.com\",\n  \"role_id\": {{role_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change Member Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_id\": {{role_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/members/{{member_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "members",
+                "{{member_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/members/{{member_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "members",
+                "{{member_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login as Member (test permissions)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.environment.set('access_token', res.data.access_token);",
+                  "  pm.environment.set('refresh_token', res.data.refresh_token);",
+                  "  console.log('Ab aap MEMBER ke token se ho. Owner par wapas jaane ke liye Auth → Login chalao.');",
+                  "}",
+                  "// Login ab user ke workspaces bhejta hai -> pehla workspace auto-select",
+                  "if (res.success && res.data.workspaces && res.data.workspaces.length) pm.environment.set(\"workspace_id\", res.data.workspaces[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Channels",
+      "item": [
+        {
+          "name": "List Channels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/channels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "channels"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Connect WhatsApp Channel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) pm.environment.set(\"channel_id\", res.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"whatsapp\",\n  \"provider\": \"meta\",\n  \"name\": \"My Shop WhatsApp\",\n  \"credentials\": {\n    \"access_token\": \"{{meta_access_token}}\",\n    \"phone_number_id\": \"{{meta_phone_number_id}}\",\n    \"waba_id\": \"{{meta_waba_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/channels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "channels"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Channel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/channels/{{channel_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "{{channel_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Channel (name / status / token)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Renamed WhatsApp\",\n  \"status\": \"connected\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/channels/{{channel_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "{{channel_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/channels/{{channel_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "{{channel_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send WhatsApp Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel_id\": {{channel_id}},\n  \"recipient\": \"919999999999\",\n  \"message\": \"Hello from Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/channels/send-message",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "send-message"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Audit Log",
+      "item": [
+        {
+          "name": "History (cursor, per_page)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Workspace-Id",
+                "value": "{{workspace_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs?per_page=25",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. WhatsApp Webhook",
+      "item": [
+        {
+          "name": "Verify (Meta GET challenge)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token={{meta_verify_token}}&hub.challenge=12345",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "whatsapp"
+              ],
+              "query": [
+                {
+                  "key": "hub.mode",
+                  "value": "subscribe"
+                },
+                {
+                  "key": "hub.verify_token",
+                  "value": "{{meta_verify_token}}"
+                },
+                {
+                  "key": "hub.challenge",
+                  "value": "12345"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Receive — UNSIGNED (expect 403)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"object\":\"whatsapp_business_account\",\"entry\":[{\"changes\":[{\"value\":{\"metadata\":{\"phone_number_id\":\"1211076188745310\"},\"contacts\":[{\"profile\":{\"name\":\"Fake User\"}}],\"messages\":[{\"from\":\"919999999999\",\"id\":\"wamid.FAKE123\",\"text\":{\"body\":\"hello fake\"}}]}}]}]}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/whatsapp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "whatsapp"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Receive — SIGNED (expect 200)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Secret environment se aata hai — collection me kabhi mat likhna",
+                  "const secret = pm.environment.get(\"meta_app_secret\");",
+                  "if (!secret) { throw new Error(\"Environment me meta_app_secret set karo\"); }",
+                  "const sig = CryptoJS.HmacSHA256(pm.request.body.raw, secret).toString();",
+                  "// Variable me save; Headers tab {{hub_signature}} se bhejta hai (upsert har Postman version me kaam nahi karta)",
+                  "pm.environment.set(\"hub_signature\", \"sha256=\" + sig);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Hub-Signature-256",
+                "value": "{{hub_signature}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"object\":\"whatsapp_business_account\",\"entry\":[{\"changes\":[{\"value\":{\"metadata\":{\"phone_number_id\":\"1211076188745310\"},\"contacts\":[{\"profile\":{\"name\":\"Signed User\"}}],\"messages\":[{\"from\":\"919999999999\",\"id\":\"wamid.SIGNED123\",\"type\":\"text\",\"text\":{\"body\":\"hello signed\"}}]}}]}]}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/whatsapp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "whatsapp"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

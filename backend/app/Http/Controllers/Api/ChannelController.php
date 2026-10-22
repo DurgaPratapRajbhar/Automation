@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\ChannelService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Exceptions\BusinessRuleException;
+use App\Http\Requests\Channel\StoreChannelRequest;
+use App\Http\Requests\Channel\UpdateChannelRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -15,6 +17,60 @@ class ChannelController extends Controller
     public function __construct(
         private ChannelService $channelService
     ) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->channelService->getChannels($workspace->id),
+        ]);
+    }
+
+    public function show(Request $request, int $channelId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->channelService->getChannel($workspace->id, $channelId),
+        ]);
+    }
+
+    public function store(StoreChannelRequest $request): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Channel connected successfully.',
+            'data' => $this->channelService->create($workspace->id, $request->validated()),
+        ], 201);
+    }
+
+    public function update(UpdateChannelRequest $request, int $channelId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Channel updated successfully.',
+            'data' => $this->channelService->update($workspace->id, $channelId, $request->validated()),
+        ]);
+    }
+
+    public function destroy(Request $request, int $channelId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        $this->channelService->delete($workspace->id, $channelId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Channel deleted successfully.',
+        ]);
+    }
 
     public function sendMessage(Request $request): JsonResponse
     {
@@ -41,14 +97,16 @@ class ChannelController extends Controller
                 'data' => $response,
             ]);
 
-        } catch (ModelNotFoundException) {
+        } catch (BusinessRuleException $e) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Channel not found.',
-            ], 404);
+                'message' => $e->getMessage(),
+            ], $e->status());
 
         } catch (RuntimeException $e) {
+
+            report($e);   // WhatsApp/Meta failure — log it so we can see why
 
             return response()->json([
                 'success' => false,

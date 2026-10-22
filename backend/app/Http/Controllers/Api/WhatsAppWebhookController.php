@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Services\InboundMessageService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WhatsAppWebhookController extends Controller
 {
-    /**
-     * Meta webhook verification
-     */
+    public function __construct(
+        private InboundMessageService $inboundMessages
+    ) {}
+
+ 
     public function verify(Request $request)
     {
         $verifyToken = config('services.meta.webhook_verify_token');
@@ -26,11 +29,8 @@ class WhatsAppWebhookController extends Controller
 
         return response('Invalid verify token', 403);
     }
-
-    /**
-     * Receive WhatsApp messages
-     */
-   public function receive(Request $request): JsonResponse
+ 
+    public function receive(Request $request): JsonResponse
     {
         $appSecret = (string) config('services.meta.app_secret');
 
@@ -39,7 +39,8 @@ class WhatsAppWebhookController extends Controller
 
             return response()->json(['success' => false], 500);
         }
-        
+
+        // Only Meta knows the App Secret — reject anything not signed by Meta
         $signature = $request->header('X-Hub-Signature-256');
 
         $expected = 'sha256=' . hash_hmac(
@@ -56,39 +57,12 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['success' => false], 403);
         }
 
-        $value = $request->input('entry.0.changes.0.value');
+        // Save the message + ring the MessageReceived bell
+        $this->inboundMessages->handle(
+            $request->input('entry.0.changes.0.value', [])
+        );
 
-        $message = $value['messages'][0] ?? null;
-
-        // Status webhook hai, incoming message nahi
-        if (!$message) {
-            return response()->json([
-                'success' => true,
-            ]);
-        }
-
-        $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
-
-        $customerNumber = $message['from'] ?? null;
-
-        $customerName =
-            $value['contacts'][0]['profile']['name'] ?? null;
-
-        $messageId = $message['id'] ?? null;
-
-        $messageText =
-            $message['text']['body'] ?? null;
-
-        logger()->info('Incoming WhatsApp Message', [
-            'phone_number_id' => $phoneNumberId,
-            'customer_number' => $customerNumber,
-            'customer_name' => $customerName,
-            'message_id' => $messageId,
-            'message' => $messageText,
-        ]);
-
-        return response()->json([
-            'success' => true,
-        ]);
+        // Always 200 quickly — otherwise Meta keeps retrying
+        return response()->json(['success' => true]);
     }
 }

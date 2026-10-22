@@ -6,6 +6,9 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\JwtAuthMiddleware;
 use App\Http\Middleware\ResolveWorkspace;
 use App\Http\Middleware\CheckPermission;
+use App\Exceptions\BusinessRuleException;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,5 +28,27 @@ return Application::configure(basePath: dirname(__DIR__))
         
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+
+        // API par hamesha JSON (HTML error page nahi)
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*')
+        );
+
+        $exceptions->render(function (BusinessRuleException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->status());
+        });
+
+        // Model / route na mile to internal class name bahar na jaye
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Resource not found.',
+                ], 404);
+            }
+        });
+
     })->create();

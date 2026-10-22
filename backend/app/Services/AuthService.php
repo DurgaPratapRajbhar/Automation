@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Models\Role;
 
 
 
@@ -48,12 +49,12 @@ class AuthService
             'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
             'expires_in' => (int) config('jwt.ttl'),
-
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
             ],
+            'workspaces' => $this->workspacesFor($user->id),
         ];
     }
 
@@ -123,7 +124,7 @@ class AuthService
                     $ownerRole = $this->roleRepository->create([
                         'workspace_id' => $workspace->id,
                         'name' => 'Owner',
-                        'slug' => 'owner',
+                        'slug' => Role::OWNER_SLUG,
                         'is_system' => true,
                     ]);
 
@@ -164,6 +165,26 @@ class AuthService
                         ],
                     ];
                 });
+    }
+
+    public function workspacesFor(int $userId): array
+    {
+        return $this->workspaceRepository
+            ->getForUser($userId)
+            ->map(fn (object $workspace) => [
+                'id'   => $workspace->id,
+                'name' => $workspace->name,
+                'slug' => $workspace->slug,
+                'type' => $workspace->type,
+                'role' => [
+                    'id'       => $workspace->role_id,
+                    'name'     => $workspace->role_name,
+                    'slug'     => $workspace->role_slug,
+                    'is_owner' => (bool) $workspace->role_is_system
+                        && $workspace->role_slug === Role::OWNER_SLUG,
+                ],
+            ])
+            ->all();
     }
 
 

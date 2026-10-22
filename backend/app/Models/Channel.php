@@ -15,6 +15,7 @@ class Channel extends Model
         'name',
         'external_account_id',
         'status',
+        'phone_number_id',
     ];
 
     public function workspace(): BelongsTo

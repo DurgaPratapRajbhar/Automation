@@ -8,19 +8,26 @@ use InvalidArgumentException;
 
 class ChannelProviderFactory
 {
-   public function make(
-            string $type,
-            string $provider
-        ): ChannelProviderInterface {
+    // "provider.type" => strategy class. Naya channel = yahan ek line.
+    private const PROVIDERS = [
+        'meta.whatsapp' => MetaWhatsAppProvider::class,
+    ];
 
-            return match ("{$provider}.{$type}") {
-                
-                'meta.whatsapp'
-                    => app(MetaWhatsAppProvider::class),
+    public function make(string $type, string $provider): ChannelProviderInterface
+    {
+        $class = self::PROVIDERS["{$provider}.{$type}"] ?? null;
 
-                default => throw new InvalidArgumentException(
-                    "Unsupported channel provider: {$provider}.{$type}"
-                ),
-            };
+        if (!$class) {
+            throw new InvalidArgumentException(
+                "Unsupported channel provider: {$provider}.{$type}"
+            );
         }
+
+        return app($class);
+    }
+
+    public function supports(string $type, string $provider): bool
+    {
+        return isset(self::PROVIDERS["{$provider}.{$type}"]);
+    }
 }

@@ -43,7 +43,60 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+// Owner register karo -> naya workspace + Owner role
+function registerOwner(TestCase $test, string $email = 'owner@example.com'): array
 {
-    // ..
+    $response = $test->postJson('/api/auth/register', [
+        'name' => 'Owner',
+        'email' => $email,
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'workspace_name' => 'Acme ' . $email,
+    ])->assertCreated();
+
+    return [
+        'token' => $response->json('data.access_token'),
+        'workspace_id' => $response->json('data.workspace.id'),
+        'user_id' => $response->json('data.user.id'),
+    ];
+}
+
+function headersFor(string $token, int $workspaceId): array
+{
+    return [
+        'Authorization' => "Bearer {$token}",
+        'X-Workspace-Id' => (string) $workspaceId,
+    ];
+}
+
+function tokenFor(int $userId): string
+{
+    return app(App\Services\JwtService::class)->generateAccessToken($userId);
+}
+
+// Owner se role banwao, phir us role ke saath naya member add karo
+function memberWithPermissions(TestCase $test, array $owner, string $roleName, array $permissions, string $email): array
+{
+    $roleId = $test->postJson('/api/roles', [
+        'name' => $roleName,
+        'permissions' => $permissions,
+    ], headersFor($owner['token'], $owner['workspace_id']))
+        ->assertCreated()
+        ->json('data.id');
+
+    $userId = $test->postJson('/api/members', [
+        'email' => $email,
+        'name' => $roleName . ' User',
+        'password' => 'password123',
+        'role_id' => $roleId,
+    ], headersFor($owner['token'], $owner['workspace_id']))
+        ->assertCreated()
+        ->json('data.id');
+
+    return [
+        'token' => tokenFor($userId),
+        'workspace_id' => $owner['workspace_id'],
+        'user_id' => $userId,
+        'role_id' => $roleId,
+    ];
 }

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
+    public const OWNER_SLUG = 'owner';
+
     protected $fillable = [
         'workspace_id',
         'name',
@@ -27,11 +29,28 @@ class Role extends Model
         return $this->belongsTo(Workspace::class);
     }
 
-   public function permissions(): BelongsToMany
+    public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(
             Permission::class,
             'role_permission'
         );
+    }
+
+    // Is role wale workspace members
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'workspace_user',
+            'role_id',
+            'user_id'
+        );
+    }
+
+    // Owner = workspace ka super admin, saari permissions automatically milti hain
+    public function isOwner(): bool
+    {
+        return $this->is_system && $this->slug === self::OWNER_SLUG;
     }
 }
