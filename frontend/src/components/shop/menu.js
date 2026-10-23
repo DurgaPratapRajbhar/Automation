@@ -3,6 +3,7 @@
 export const MENU = [
   { label: 'Dashboard', href: '/dashboard', permission: null },
   { label: 'Customers', href: '/customers', permission: 'customers.view' },
+  { label: 'Knowledge', href: '/knowledge', permission: 'knowledge-sources.view' },
   { label: 'Members', href: '/members', permission: 'members.view' },
   { label: 'Roles', href: '/roles', permission: 'roles.view' },
   { label: 'Shop profile', href: '/settings/profile', permission: 'workspace.view' },

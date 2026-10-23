@@ -7,6 +7,7 @@ use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Repositories\Contracts\ChannelRepositoryInterface;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
+use App\Repositories\Contracts\KnowledgeSourceRepositoryInterface;
 use App\Repositories\Contracts\MemberRepositoryInterface;
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
@@ -19,6 +20,7 @@ use App\Repositories\Eloquent\AuditLogRepository;
 use App\Repositories\Eloquent\ChannelRepository;
 use App\Repositories\Eloquent\ConversationRepository;
 use App\Repositories\Eloquent\CustomerRepository;
+use App\Repositories\Eloquent\KnowledgeSourceRepository;
 use App\Repositories\Eloquent\MemberRepository;
 use App\Repositories\Eloquent\MessageRepository;
 use App\Repositories\Eloquent\PermissionRepository;
@@ -85,6 +87,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             MessageRepositoryInterface::class,
             MessageRepository::class
+        );
+
+        $this->app->bind(
+            KnowledgeSourceRepositoryInterface::class,
+            KnowledgeSourceRepository::class
         );
 
         $this->app->bind(

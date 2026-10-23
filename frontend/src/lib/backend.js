@@ -25,3 +25,21 @@ export async function backend(path, { method = 'GET', body, admin = false } = {}
 
   return { ok: res.ok, status: res.status, data };
 }
+
+// Shop session only: send multipart/form-data (file uploads). fetch sets the boundary itself.
+export async function backendForm(path, formData, { method = 'POST' } = {}) {
+  const store = await cookies();
+  const names = cookiesFor(false);
+  const token = store.get(names.access)?.value;
+  const workspaceId = store.get(names.workspace)?.value;
+
+  const headers = { Accept: 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (workspaceId) headers['X-Workspace-Id'] = workspaceId;
+
+  const res = await fetch(`${process.env.BACKEND_URL}/api/${path}`, { method, headers, body: formData, cache: 'no-store' });
+
+  const data = await res.json().catch(() => ({ success: false, message: 'Server error.' }));
+
+  return { ok: res.ok, status: res.status, data };
+}
