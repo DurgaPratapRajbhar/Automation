@@ -60,6 +60,26 @@ services:
       depends_on:
         - backend
 
+   ai-service:
+      build:
+        context: ./ai-service
+      container_name: automation-ai
+      restart: unless-stopped
+      working_dir: /app
+      volumes:
+        - ./ai-service:/app
+      ports:
+        - "8001:8001"
+      env_file:
+        - ./ai-service/.env
+      # Container host (aapke PC) ko is naam se dhundhta hai -> Ollama tak pahunch
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+      # Dev me file badalte hi reload
+      command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+      depends_on:
+        - postgres
+
 volumes:
   postgres_data:
   redis_data:
