@@ -53,4 +53,9 @@ return [
         'app_secret' => env('META_APP_SECRET'),
     ],
 
+    'ai' => [
+        // Python ai-service (embedding, RAG). Laravel sirf isko trigger karta hai.
+        'url' => env('AI_SERVICE_URL', 'http://ai-service:8001'),
+    ],
+
 ];

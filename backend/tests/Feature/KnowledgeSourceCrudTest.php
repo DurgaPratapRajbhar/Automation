@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -10,6 +11,8 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->withoutMiddleware(ThrottleRequests::class);
     Storage::fake('local');
+    // Koi real ai-service call na jaye (indexer waise bhi Null hai testing me)
+    Http::preventStrayRequests();
 });
 
 test('owner can create, list, show, update and delete a text knowledge source', function () {

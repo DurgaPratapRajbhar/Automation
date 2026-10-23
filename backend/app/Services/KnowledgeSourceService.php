@@ -7,6 +7,7 @@ use App\Enums\KnowledgeType;
 use App\Exceptions\BusinessRuleException;
 use App\Models\KnowledgeSource;
 use App\Repositories\Contracts\KnowledgeSourceRepositoryInterface;
+use App\Services\Contracts\KnowledgeIndexerInterface;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +20,8 @@ class KnowledgeSourceService
     private const DISK = 'local';
 
     public function __construct(
-        private KnowledgeSourceRepositoryInterface $knowledgeSourceRepository
+        private KnowledgeSourceRepositoryInterface $knowledgeSourceRepository,
+        private KnowledgeIndexerInterface $indexer
     ) {}
 
     public function list(int $workspaceId, ?string $search, int $perPage): CursorPaginator
@@ -53,7 +55,12 @@ class KnowledgeSourceService
             $payload = [...$payload, ...$this->storeFile($workspaceId, $file)];
         }
 
-        return $this->present($this->knowledgeSourceRepository->create($payload));
+        $source = $this->knowledgeSourceRepository->create($payload);
+
+        // ai-service ko seekhne bhejo; wo status 'ready' kar dega
+        $this->indexer->index($source);
+
+        return $this->present($source->refresh());
     }
 
     // Update sirf title/content badalta hai. File badalni ho to delete karke dobara add karo.
@@ -66,11 +73,20 @@ class KnowledgeSourceService
         }
 
         // Content badla to AI ko dobara padhna hoga
-        if (array_key_exists('content', $data) && $data['content'] !== $source->content) {
+        $contentChanged = array_key_exists('content', $data) && $data['content'] !== $source->content;
+
+        if ($contentChanged) {
             $data['status'] = KnowledgeStatus::Pending->value;
         }
 
-        return $this->present($this->knowledgeSourceRepository->update($source, $data));
+        $updated = $this->knowledgeSourceRepository->update($source, $data);
+
+        if ($contentChanged) {
+            $this->indexer->index($updated);
+            $updated->refresh();
+        }
+
+        return $this->present($updated);
     }
 
     public function delete(int $workspaceId, int $knowledgeSourceId): void

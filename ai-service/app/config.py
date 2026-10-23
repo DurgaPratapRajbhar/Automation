@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     ollama_chat_model: str = "qwen2.5:7b"
     ollama_embed_model: str = "nomic-embed-text"
 
+    # nomic-embed-text = 768 dimensions
+    embed_dim: int = 768
+
+    # Postgres (pgvector) - vector table sirf yahीn (ai-service) manage hoti hai
+    database_url: str = "postgresql://postgres:123@postgres:5432/automation"
+
     # Production keys (local me khali rehte hain)
     anthropic_api_key: str = ""
     openai_api_key: str = ""

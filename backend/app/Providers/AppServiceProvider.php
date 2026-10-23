@@ -94,6 +94,14 @@ class AppServiceProvider extends ServiceProvider
             KnowledgeSourceRepository::class
         );
 
+        // Tests me network nahi; chalu app me asli ai-service call
+        $this->app->bind(
+            \App\Services\Contracts\KnowledgeIndexerInterface::class,
+            $this->app->environment('testing')
+                ? \App\Services\Ai\NullKnowledgeIndexer::class
+                : \App\Services\Ai\HttpKnowledgeIndexer::class
+        );
+
         $this->app->bind(
             CustomerRepositoryInterface::class,
             CustomerRepository::class

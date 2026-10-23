@@ -1,9 +1,34 @@
+from contextlib import asynccontextmanager
+
 import httpx
 from fastapi import FastAPI
+from pydantic import BaseModel
 
+from app import db
+from app.chunking import chunk_text
 from app.config import settings
+from app.embeddings import embed
 
-app = FastAPI(title="Automation AI service")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Vector table yahीn (ai-service) banti/ensure hoti hai
+    db.ensure_schema()
+    yield
+
+
+app = FastAPI(title="Automation AI service", lifespan=lifespan)
+
+
+class LearnRequest(BaseModel):
+    source_id: int
+    workspace_id: int
+    content: str
+
+
+def to_vector(values: list[float]) -> str:
+    # pgvector literal: [0.1,0.2,...]
+    return "[" + ",".join(str(v) for v in values) + "]"
 
 
 @app.get("/health")
@@ -11,7 +36,6 @@ def health():
     return {"status": "ok", "provider": settings.ai_provider}
 
 
-# Kya ye service Ollama tak pahunch paa rahi hai, aur kaunse model hain
 @app.get("/health/ollama")
 async def health_ollama():
     try:
@@ -20,7 +44,6 @@ async def health_ollama():
             response.raise_for_status()
             models = [model["name"] for model in response.json().get("models", [])]
 
-        # Ollama "name" aur "name:latest" ko same maano
         def ready(name: str) -> bool:
             return name in models or f"{name}:latest" in models
 
@@ -33,3 +56,34 @@ async def health_ollama():
         }
     except Exception as error:
         return {"reachable": False, "url": settings.ollama_url, "error": str(error)}
+
+
+# Ek knowledge source ko "yaad" karo: tukde -> embed -> store. Dobara bheja to purane tukde hata ke naye.
+@app.post("/learn")
+async def learn(request: LearnRequest):
+    chunks = chunk_text(request.content)
+
+    with db.connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM knowledge_chunks WHERE knowledge_source_id = %s",
+            (request.source_id,),
+        )
+
+        for chunk in chunks:
+            vector = to_vector(await embed(chunk))
+            cur.execute(
+                """
+                INSERT INTO knowledge_chunks (knowledge_source_id, workspace_id, content, embedding)
+                VALUES (%s, %s, %s, %s::vector)
+                """,
+                (request.source_id, request.workspace_id, chunk, vector),
+            )
+
+        # Source ko 'ready' mark karo (status knowledge_sources me Laravel ke liye)
+        cur.execute(
+            "UPDATE knowledge_sources SET status = 'ready', updated_at = now() WHERE id = %s",
+            (request.source_id,),
+        )
+        conn.commit()
+
+    return {"source_id": request.source_id, "chunks": len(chunks), "status": "ready"}
