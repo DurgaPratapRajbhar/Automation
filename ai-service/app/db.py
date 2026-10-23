@@ -31,3 +31,8 @@ def ensure_schema() -> None:
             "ON knowledge_chunks (workspace_id)"
         )
         conn.commit()
+
+
+def to_vector(values: list[float]) -> str:
+    # pgvector literal: [0.1,0.2,...]
+    return "[" + ",".join(str(v) for v in values) + "]"

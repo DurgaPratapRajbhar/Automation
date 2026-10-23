@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app import db
+from app.agent import answer_question
 from app.chunking import chunk_text
 from app.config import settings
 from app.embeddings import embed
@@ -26,9 +27,9 @@ class LearnRequest(BaseModel):
     content: str
 
 
-def to_vector(values: list[float]) -> str:
-    # pgvector literal: [0.1,0.2,...]
-    return "[" + ",".join(str(v) for v in values) + "]"
+class AskRequest(BaseModel):
+    workspace_id: int
+    question: str
 
 
 @app.get("/health")
@@ -70,7 +71,7 @@ async def learn(request: LearnRequest):
         )
 
         for chunk in chunks:
-            vector = to_vector(await embed(chunk))
+            vector = db.to_vector(await embed(chunk))
             cur.execute(
                 """
                 INSERT INTO knowledge_chunks (knowledge_source_id, workspace_id, content, embedding)
@@ -87,3 +88,9 @@ async def learn(request: LearnRequest):
         conn.commit()
 
     return {"source_id": request.source_id, "chunks": len(chunks), "status": "ready"}
+
+
+# Agentic RAG (LangGraph): retrieve -> grade -> (rewrite+retry | generate | fallback)
+@app.post("/ask")
+async def ask(request: AskRequest):
+    return await answer_question(request.workspace_id, request.question)
