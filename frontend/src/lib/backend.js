@@ -1,12 +1,14 @@
 import { cookies } from 'next/headers';
-import { COOKIES } from '@/lib/cookies';
+import { cookiesFor } from '@/lib/cookies';
 
 // Server only: the single place that calls the Laravel API.
+// admin: true uses the super admin session instead of the shop session.
 // Returns { ok, status, data } and never throws for API errors.
-export async function backend(path, { method = 'GET', body } = {}) {
+export async function backend(path, { method = 'GET', body, admin = false } = {}) {
   const store = await cookies();
-  const token = store.get(COOKIES.access)?.value;
-  const workspaceId = store.get(COOKIES.workspace)?.value;
+  const names = cookiesFor(admin);
+  const token = store.get(names.access)?.value;
+  const workspaceId = names.workspace && store.get(names.workspace)?.value;
 
   const headers = { Accept: 'application/json', 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;

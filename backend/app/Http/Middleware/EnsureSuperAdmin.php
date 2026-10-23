@@ -10,7 +10,7 @@ class EnsureSuperAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user()?->isSuperAdmin()) {
+        if (! $request->user()?->isSuperAdmin()) {
             return response()->json(['success' => false, 'message' => __('rbac.super_admin_only')], 403);
         }
 

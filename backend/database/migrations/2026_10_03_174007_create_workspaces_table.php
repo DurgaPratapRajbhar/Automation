@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('workspaces', function (Blueprint $table) {
-        $table->id();
+        Schema::create('workspaces', function (Blueprint $table) {
+            $table->id();
 
-        $table->string('name');
+            $table->string('name');
 
-        $table->string('slug')->unique();
+            $table->string('slug')->unique();
 
-        $table->string('type')->default('business');
-        // business, creator, individual etc.
+            $table->string('type')->default('business');
+            // business, creator, individual etc.
 
-        $table->string('status')->default('active');
+            $table->string('status')->default('active');
 
-        $table->timestamps();
-      });
+            $table->timestamps();
+        });
     }
 
     /**

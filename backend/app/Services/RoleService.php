@@ -164,7 +164,7 @@ class RoleService
     {
         $role = $this->roleRepository->findInWorkspace($workspaceId, $roleId);
 
-        if (!$role) {
+        if (! $role) {
             throw new BusinessRuleException(__('rbac.role_not_found'), 404);
         }
 

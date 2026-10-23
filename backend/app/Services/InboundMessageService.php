@@ -25,14 +25,14 @@ class InboundMessageService
         $incoming = $value['messages'][0] ?? null;
 
         // Status update (sent/delivered/read), not a new message
-        if (!$incoming) {
+        if (! $incoming) {
             return;
         }
 
         $externalId = $incoming['id'] ?? null;
 
         // 1) Idempotency: Meta retries webhooks — save each message only once
-        if (!$externalId || $this->messages->existsByExternalId($externalId)) {
+        if (! $externalId || $this->messages->existsByExternalId($externalId)) {
             return;
         }
 
@@ -40,10 +40,11 @@ class InboundMessageService
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? '';
         $channel = $this->channels->findConnectedByPhoneNumberId($phoneNumberId);
 
-        if (!$channel) {
+        if (! $channel) {
             logger()->warning('WhatsApp webhook: no connected channel for number', [
                 'phone_number_id' => $phoneNumberId,
             ]);
+
             return;
         }
 
@@ -61,13 +62,13 @@ class InboundMessageService
                 // 4) Save the message bubble
                 $message = $this->messages->create([
                     'conversation_id' => $conversation->id,
-                    'workspace_id'    => $channel->workspace_id,
-                    'direction'       => 'inbound',
-                    'external_id'     => $externalId,
-                    'type'            => $incoming['type'] ?? 'text',
-                    'body'            => $incoming['text']['body'] ?? null,
-                    'payload'         => $incoming,
-                    'status'          => 'received',
+                    'workspace_id' => $channel->workspace_id,
+                    'direction' => 'inbound',
+                    'external_id' => $externalId,
+                    'type' => $incoming['type'] ?? 'text',
+                    'body' => $incoming['text']['body'] ?? null,
+                    'payload' => $incoming,
+                    'status' => 'received',
                 ]);
 
                 $this->conversations->touchLastMessage($conversation);

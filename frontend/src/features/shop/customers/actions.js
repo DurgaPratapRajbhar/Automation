@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { backend } from '@/lib/backend';
 import { formError, formValues } from '@/lib/forms';
@@ -14,6 +15,7 @@ export async function saveCustomer(customerId, previousState, formData) {
 
   if (!ok) return formError(data, values);
 
+  revalidatePath('/customers');
   redirect('/customers');
 }
 
@@ -22,5 +24,6 @@ export async function deleteCustomer(customerId) {
 
   if (!ok) return formError(data);
 
+  revalidatePath('/customers');
   redirect('/customers');
 }

@@ -1,7 +1,11 @@
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
 export default async function DashboardPage() {
-  const { data } = await getWorkspaceAccess();
+  const { ok, data } = await getWorkspaceAccess();
+
+  // The layout already shows why (suspended, no access...); the page renders in parallel
+  if (!ok) return null;
+
   const { workspace, role, permissions } = data.data;
 
   return (

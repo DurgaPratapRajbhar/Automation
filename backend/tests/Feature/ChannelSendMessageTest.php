@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -55,8 +54,7 @@ test('owner can send message through own workspace channel', function () {
         ->assertOk()
         ->assertJsonPath('data.messages.0.id', 'wamid.TEST');
 
-    Http::assertSent(fn (HttpRequest $request) =>
-        str_contains($request->url(), '/111222333/messages')
+    Http::assertSent(fn (HttpRequest $request) => str_contains($request->url(), '/111222333/messages')
         && $request->hasHeader('Authorization', 'Bearer test-token')
         && $request['to'] === '919999999999'
     );

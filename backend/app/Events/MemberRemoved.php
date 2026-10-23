@@ -9,10 +9,10 @@ class MemberRemoved
     use Dispatchable;
 
     public function __construct(
-        public int $workspaceId,      
-        public int $actorUserId,       
-        public int $memberUserId,     
-        public string $roleName,   
-          
+        public int $workspaceId,
+        public int $actorUserId,
+        public int $memberUserId,
+        public string $roleName,
+
     ) {}
 }

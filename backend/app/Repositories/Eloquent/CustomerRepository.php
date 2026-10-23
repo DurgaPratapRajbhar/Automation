@@ -13,7 +13,7 @@ class CustomerRepository implements CustomerRepositoryInterface
         return Customer::query()
             ->where('workspace_id', $workspaceId)
             ->when($search !== null && $search !== '', function ($query) use ($search) {
-                $like = '%' . mb_strtolower($search) . '%';
+                $like = '%'.mb_strtolower($search).'%';
 
                 // LOWER() makes the search case-insensitive on Postgres too
                 $query->where(function ($inner) use ($like) {

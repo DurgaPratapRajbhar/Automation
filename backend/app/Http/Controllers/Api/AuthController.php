@@ -4,20 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RefreshTokenRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\Auth\RefreshTokenRequest;
 use RuntimeException;
-use App\Http\Requests\Auth\RegisterRequest;
-
 
 class AuthController extends Controller
 {
     public function __construct(
         private AuthService $authService
-    ) {
-    }
+    ) {}
 
     public function login(LoginRequest $request): JsonResponse
     {
@@ -33,7 +30,23 @@ class AuthController extends Controller
         ]);
     }
 
-   public function me(Request $request): JsonResponse
+    // Super admin panel login: only super admin accounts get in
+    public function adminLogin(LoginRequest $request): JsonResponse
+    {
+        $result = $this->authService->login(
+            $request->string('email')->toString(),
+            $request->string('password')->toString(),
+            asSuperAdmin: true
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => $result,
+        ]);
+    }
+
+    public function me(Request $request): JsonResponse
     {
         $user = $request->user();
 
@@ -93,20 +106,5 @@ class AuthController extends Controller
             ], 401);
         }
     }
-    public function register(RegisterRequest $request): JsonResponse
-    {
-            $result = $this->authService->register(
-                $request->string('name')->toString(),
-                $request->string('email')->toString(),
-                $request->string('password')->toString(),
-                $request->string('workspace_name')->toString(),
-                $request->input('workspace_type', 'business')
-            );
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Registration successful.',
-                'data' => $result,
-            ], 201);
-    }
 }

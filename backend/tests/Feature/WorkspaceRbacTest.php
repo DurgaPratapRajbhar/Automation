@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\User;
+use App\Services\RoutePermissionResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -18,7 +18,7 @@ test('owner can do everything and sees all permissions', function () {
     $me = $this->getJson('/api/workspace/me', $headers)->assertOk();
 
     expect($me->json('data.role.is_owner'))->toBeTrue()
-        ->and($me->json('data.permissions'))->toHaveCount(count(app(App\Services\RoutePermissionResolver::class)->all()));
+        ->and($me->json('data.permissions'))->toHaveCount(count(app(RoutePermissionResolver::class)->all()));
 
     $this->getJson('/api/roles', $headers)->assertOk();
     $this->getJson('/api/members', $headers)->assertOk();

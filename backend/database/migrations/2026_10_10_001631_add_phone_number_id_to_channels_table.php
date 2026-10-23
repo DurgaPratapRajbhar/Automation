@@ -2,11 +2,12 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
 return new class extends Migration
 {
-     public function up(): void
+    public function up(): void
     {
         // 1) New column + UNIQUE index (unique = index + no duplicates)
         Schema::table('channels', function (Blueprint $table) {
@@ -20,7 +21,7 @@ return new class extends Migration
             ->each(function ($row) {
                 $config = json_decode($row->config, true) ?? [];
 
-                if (!empty($config['phone_number_id'])) {
+                if (! empty($config['phone_number_id'])) {
                     DB::table('channels')
                         ->where('id', $row->channel_id)
                         ->update(['phone_number_id' => $config['phone_number_id']]);
@@ -30,9 +31,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        
-            // $table->dropColumn('phone_number_id');
-            
-       
+
+        // $table->dropColumn('phone_number_id');
+
     }
 };

@@ -29,7 +29,7 @@ class ChannelService
 
     public function create(int $workspaceId, array $data): array
     {
-        if (!$this->providerFactory->supports($data['type'], $data['provider'])) {
+        if (! $this->providerFactory->supports($data['type'], $data['provider'])) {
             throw new BusinessRuleException("Unsupported channel: {$data['provider']}.{$data['type']}");
         }
 
@@ -74,7 +74,7 @@ class ChannelService
                 $this->ensurePhoneNumberIdAvailable($incoming['phone_number_id'], $channel->id);
                 $config['phone_number_id'] = $incoming['phone_number_id'];
                 $channelData['phone_number_id'] = $incoming['phone_number_id'];
-                
+
             }
 
             if (array_key_exists('waba_id', $incoming)) {
@@ -112,13 +112,13 @@ class ChannelService
         $channel = $this->channelRepository
             ->findConnectedInWorkspace($workspaceId, $channelId);
 
-        if (!$channel) {
+        if (! $channel) {
             throw new BusinessRuleException('Channel not found.', 404);
         }
 
         $credential = $channel->credential;
 
-        if (!$credential || !$credential->access_token) {
+        if (! $credential || ! $credential->access_token) {
             throw new BusinessRuleException('Channel credentials are missing.');
         }
 
@@ -148,7 +148,7 @@ class ChannelService
     {
         $channel = $this->channelRepository->findInWorkspace($workspaceId, $channelId);
 
-        if (!$channel) {
+        if (! $channel) {
             throw new BusinessRuleException('Channel not found.', 404);
         }
 

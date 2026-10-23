@@ -58,7 +58,7 @@ class WorkspaceRepository implements WorkspaceRepositoryInterface
     {
         return Workspace::query()
             ->when($search !== null && $search !== '', function ($query) use ($search) {
-                $query->whereRaw('LOWER(name) LIKE ?', ['%' . mb_strtolower($search) . '%']);
+                $query->whereRaw('LOWER(name) LIKE ?', ['%'.mb_strtolower($search).'%']);
             })
             ->withCount('users')
             ->orderByDesc('id')

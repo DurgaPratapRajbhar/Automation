@@ -12,8 +12,7 @@ class RefreshTokenService
 
     public function __construct(
         private RefreshTokenRepositoryInterface $refreshTokenRepository
-    ) {
-    }
+    ) {}
 
     public function create(int $userId): string
     {
@@ -27,6 +26,7 @@ class RefreshTokenService
             'token_hash' => $tokenHash,
             'expires_at' => now()->addDays(self::TOKEN_TTL_DAYS),
         ]);
+
         return $plainToken;
     }
 
@@ -37,7 +37,7 @@ class RefreshTokenService
         $refreshToken = $this->refreshTokenRepository
             ->findByTokenHash($tokenHash);
 
-        if (!$refreshToken) {
+        if (! $refreshToken) {
             throw new RuntimeException('Invalid refresh token.');
         }
 

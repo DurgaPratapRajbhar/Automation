@@ -14,8 +14,14 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 class AdminWorkspaceService
 {
     public function __construct(
-        private WorkspaceRepositoryInterface $workspaceRepository
+        private WorkspaceRepositoryInterface $workspaceRepository,
+        private WorkspaceSetupService $setupService
     ) {}
+
+    public function create(array $data): array
+    {
+        return $this->present($this->setupService->create($data)->loadCount('users'));
+    }
 
     public function list(?string $search, int $perPage): CursorPaginator
     {
@@ -30,7 +36,7 @@ class AdminWorkspaceService
     {
         $workspace = $this->workspaceRepository->findById($workspaceId);
 
-        if (!$workspace) {
+        if (! $workspace) {
             throw new BusinessRuleException(__('rbac.workspace_not_found'), 404);
         }
 

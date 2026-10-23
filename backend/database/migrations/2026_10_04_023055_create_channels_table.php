@@ -12,29 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('channels', function (Blueprint $table) {
-                $table->id();
+            $table->id();
 
-                $table->foreignId('workspace_id')
-                    ->constrained()
-                    ->cascadeOnDelete();
+            $table->foreignId('workspace_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
-                $table->string('type');
-                // whatsapp, instagram, facebook, google_business
+            $table->string('type');
+            // whatsapp, instagram, facebook, google_business
 
-                $table->string('provider');
-                // meta, google
+            $table->string('provider');
+            // meta, google
 
-                $table->string('name')->nullable();
+            $table->string('name')->nullable();
 
-                $table->string('external_account_id')->nullable();
+            $table->string('external_account_id')->nullable();
 
-                $table->string('status')->default('disconnected');
-                // disconnected, connected, error
+            $table->string('status')->default('disconnected');
+            // disconnected, connected, error
 
-                $table->timestamps();
+            $table->timestamps();
 
-                $table->index(['workspace_id', 'type']);
-            });
+            $table->index(['workspace_id', 'type']);
+        });
     }
 
     /**

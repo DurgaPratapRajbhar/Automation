@@ -15,7 +15,7 @@ class ChannelCredential extends Model
         'config',
     ];
 
-  protected function casts(): array
+    protected function casts(): array
     {
         return [
             'access_token' => 'encrypted',

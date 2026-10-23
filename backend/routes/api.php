@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\WorkspaceProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('throttle:10,1');
@@ -69,9 +68,13 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
     });
 });
 
+// Super admin login (separate from shop login)
+Route::post('/admin/auth/login', [AuthController::class, 'adminLogin'])->middleware('throttle:5,1');
+
 // Platform super admin only
 Route::prefix('admin')->middleware(['jwt.auth', 'super.admin'])->whereNumber(['workspaceId', 'templateId'])->group(function () {
     Route::get('/workspaces', [AdminWorkspaceController::class, 'index']);
+    Route::post('/workspaces', [AdminWorkspaceController::class, 'store']);
     Route::patch('/workspaces/{workspaceId}/status', [AdminWorkspaceController::class, 'updateStatus']);
 
     // Permission tree for the role template form

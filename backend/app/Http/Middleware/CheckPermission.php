@@ -19,13 +19,13 @@ class CheckPermission
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->attributes->has('workspace')) {
+        if (! $request->attributes->has('workspace')) {
             return response()->json(['success' => false, 'message' => __('rbac.workspace_not_resolved')], 400);
         }
 
         $permission = $this->resolver->forRoute($request->route());
 
-        if (!$permission || !$request->user()->can($permission)) {
+        if (! $permission || ! $request->user()->can($permission)) {
             return response()->json(['success' => false, 'message' => __('rbac.forbidden')], 403);
         }
 

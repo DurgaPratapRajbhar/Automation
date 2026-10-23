@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation';
 import Sidebar from '@/components/shop/Sidebar';
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
-// Shell for every logged-in page
+export const metadata = { title: 'Shop' };
+
+// Shell for every logged-in shop page
 export default async function AppLayout({ children }) {
   const { ok, status, data } = await getWorkspaceAccess();
 

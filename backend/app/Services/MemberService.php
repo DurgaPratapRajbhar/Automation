@@ -46,8 +46,8 @@ class MemberService
         return DB::transaction(function () use ($workspaceId, $email, $name, $password, $role) {
             $user = $this->userRepository->findByEmail($email);
 
-            if (!$user) {
-                if (!$name || !$password) {
+            if (! $user) {
+                if (! $name || ! $password) {
                     throw new BusinessRuleException(__('rbac.name_and_password_required'));
                 }
 
@@ -86,7 +86,7 @@ class MemberService
 
         $this->ensureCanAssign($actor, $actorRole, $newRole);
 
-        if ($currentRole->isOwner() && !$newRole->isOwner()) {
+        if ($currentRole->isOwner() && ! $newRole->isOwner()) {
             $this->ensureNotLastOwner($currentRole);
         }
 
@@ -122,7 +122,7 @@ class MemberService
 
     private function ensureCanAssign(User $actor, ?Role $actorRole, Role $role): void
     {
-        if ($role->isOwner() && !$this->permissionService->isOwnerOrSuperAdmin($actor, $actorRole)) {
+        if ($role->isOwner() && ! $this->permissionService->isOwnerOrSuperAdmin($actor, $actorRole)) {
             throw new BusinessRuleException(__('rbac.owner_assign_only'), 403);
         }
 
@@ -140,7 +140,7 @@ class MemberService
     {
         $role = $this->roleRepository->findInWorkspace($workspaceId, $roleId);
 
-        if (!$role) {
+        if (! $role) {
             throw new BusinessRuleException(__('rbac.role_not_in_workspace'));
         }
 
@@ -151,7 +151,7 @@ class MemberService
     {
         $member = $this->memberRepository->findMember($workspaceId, $userId);
 
-        if (!$member) {
+        if (! $member) {
             throw new BusinessRuleException(__('rbac.member_not_found'), 404);
         }
 

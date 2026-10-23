@@ -5,31 +5,24 @@ import { backend } from '@/lib/backend';
 import { formError, formValues } from '@/lib/forms';
 import { saveSession } from '@/lib/session';
 
+// Shop login: only shop users get in (the API rejects super admin accounts here)
 export async function login(previousState, formData) {
   const input = formValues(formData);
   const { ok, data } = await backend('auth/login', { method: 'POST', body: input });
 
   if (!ok) return formError(data, { email: input.email });
 
-  const { workspaces } = data.data;
-
-  await saveSession(data.data, workspaces[0]?.id);
-
-  // A super admin may have no workspace of their own
-  redirect(workspaces.length ? '/dashboard' : '/admin');
+  await saveSession(data.data, { workspaceId: data.data.workspaces[0]?.id });
+  redirect('/dashboard');
 }
 
-export async function register(previousState, formData) {
+// Super admin login: separate API route and separate session cookies
+export async function adminLogin(previousState, formData) {
   const input = formValues(formData);
-  const { ok, data } = await backend('auth/register', { method: 'POST', body: input });
+  const { ok, data } = await backend('admin/auth/login', { method: 'POST', body: input, admin: true });
 
-  if (!ok) {
-    // Never send passwords back to the browser
-    const { password, password_confirmation, ...values } = input;
+  if (!ok) return formError(data, { email: input.email });
 
-    return formError(data, values);
-  }
-
-  await saveSession(data.data, data.data.workspace.id);
-  redirect('/dashboard');
+  await saveSession(data.data, { admin: true });
+  redirect('/admin');
 }

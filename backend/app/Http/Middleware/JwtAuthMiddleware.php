@@ -14,13 +14,12 @@ class JwtAuthMiddleware
     public function __construct(
         private JwtService $jwtService,
         private UserRepositoryInterface $userRepository
-    ) {
-  }
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
-         $token = $request->bearerToken();
-          if (!$token) {
+        $token = $request->bearerToken();
+        if (! $token) {
             return response()->json([
                 'success' => false,
                 'message' => 'Authentication token is required.',
@@ -34,7 +33,7 @@ class JwtAuthMiddleware
 
             $user = $this->userRepository->findById($userId);
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found.',
@@ -55,6 +54,5 @@ class JwtAuthMiddleware
             ], 401);
         }
 
-        
     }
 }

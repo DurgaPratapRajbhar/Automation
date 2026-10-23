@@ -10,7 +10,7 @@ class UpiId implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_string($value) || !preg_match('/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/', $value)) {
+        if (! is_string($value) || ! preg_match('/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/', $value)) {
             $fail('rules.upi_id')->translate();
         }
     }

@@ -1,13 +1,13 @@
 <?php
 
+use App\Exceptions\BusinessRuleException;
+use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\JwtAuthMiddleware;
+use App\Http\Middleware\ResolveWorkspace;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\JwtAuthMiddleware;
-use App\Http\Middleware\ResolveWorkspace;
-use App\Http\Middleware\CheckPermission;
-use App\Http\Middleware\EnsureSuperAdmin;
-use App\Exceptions\BusinessRuleException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -19,15 +19,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        
-       $middleware->alias([
+
+        $middleware->alias([
             'jwt.auth' => JwtAuthMiddleware::class,
             'workspace' => ResolveWorkspace::class,
             'permission' => CheckPermission::class,
             'super.admin' => EnsureSuperAdmin::class,
         ]);
 
-        
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 

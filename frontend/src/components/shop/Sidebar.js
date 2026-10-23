@@ -6,6 +6,7 @@ export default function Sidebar({ access }) {
 
   return (
     <aside className="flex w-full flex-col gap-1 border-b border-slate-200 bg-white p-4 md:min-h-screen md:w-60 md:border-b-0 md:border-r">
+      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Shop</p>
       <p className="mb-4 truncate font-semibold">{access.workspace.name}</p>
 
       {links.map((item) => (
@@ -13,10 +14,6 @@ export default function Sidebar({ access }) {
           {item.label}
         </Link>
       ))}
-
-      {access.is_super_admin && (
-        <Link href="/admin" className="rounded-lg px-3 py-2 font-medium text-slate-900 hover:bg-slate-100">Super Admin</Link>
-      )}
 
       {/* Plain link: /logout is a route that clears the session */}
       <a href="/logout" className="mt-auto rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">

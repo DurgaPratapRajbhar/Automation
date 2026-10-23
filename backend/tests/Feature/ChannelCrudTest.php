@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\ChannelCredential;
+use App\Models\Permission;
+use App\Services\RoutePermissionResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 
@@ -25,7 +27,7 @@ function whatsappChannelPayload(string $phoneNumberId = '1211076188745310'): arr
 }
 
 test('permissions exist right after migrate (no seeder needed)', function () {
-    expect(App\Models\Permission::count())->toBe(count(app(App\Services\RoutePermissionResolver::class)->all()));
+    expect(Permission::count())->toBe(count(app(RoutePermissionResolver::class)->all()));
 });
 
 test('owner can create, list, update and delete a channel', function () {

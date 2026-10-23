@@ -10,7 +10,7 @@ class Phone implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_string($value) || !preg_match('/^\d{10,15}$/', $value)) {
+        if (! is_string($value) || ! preg_match('/^\d{10,15}$/', $value)) {
             $fail('rules.phone')->translate();
         }
     }

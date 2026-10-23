@@ -15,7 +15,7 @@ export default async function AdminWorkspacesPage({ searchParams }) {
 
   return (
     <>
-      <PageHeader title="Workspaces" />
+      <PageHeader title="Workspaces" actionLabel="New shop" actionHref="/admin/workspaces/new" />
 
       <form className="mb-4 flex gap-2">
         <input name="search" defaultValue={search} placeholder="Search by name" className="w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-2" />

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\WorkspaceStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreWorkspaceRequest;
 use App\Services\AdminWorkspaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,16 @@ class AdminWorkspaceController extends Controller
     public function __construct(
         private AdminWorkspaceService $adminWorkspaceService
     ) {}
+
+    // New shop + its owner login
+    public function store(StoreWorkspaceRequest $request): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => __('workspace.created'),
+            'data' => $this->adminWorkspaceService->create($request->validated()),
+        ], 201);
+    }
 
     public function index(Request $request): JsonResponse
     {

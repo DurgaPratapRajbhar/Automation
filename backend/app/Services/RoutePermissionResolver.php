@@ -27,7 +27,7 @@ class RoutePermissionResolver
     // The permission a route needs; null if the route is not protected or has no usable name
     public function forRoute(Route $route): ?string
     {
-        if (!in_array('permission', $route->gatherMiddleware(), true)) {
+        if (! in_array('permission', $route->gatherMiddleware(), true)) {
             return null;
         }
 
@@ -40,7 +40,7 @@ class RoutePermissionResolver
 
         $action = substr($name, $dot + 1);
 
-        return substr($name, 0, $dot) . '.' . (self::ACTIONS[$action] ?? $action);
+        return substr($name, 0, $dot).'.'.(self::ACTIONS[$action] ?? $action);
     }
 
     // Every permission used by the registered routes

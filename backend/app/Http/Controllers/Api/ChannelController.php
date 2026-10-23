@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Services\ChannelService;
 use App\Exceptions\BusinessRuleException;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Channel\StoreChannelRequest;
 use App\Http\Requests\Channel\UpdateChannelRequest;
+use App\Services\ChannelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -76,8 +76,8 @@ class ChannelController extends Controller
     {
         $data = $request->validate([
             'channel_id' => ['required', 'integer'],
-            'recipient'  => ['required', 'string', 'regex:/^\d{8,15}$/'],
-            'message'    => ['required', 'string', 'max:4096'],
+            'recipient' => ['required', 'string', 'regex:/^\d{8,15}$/'],
+            'message' => ['required', 'string', 'max:4096'],
         ]);
 
         $workspace = $request->attributes->get('workspace');

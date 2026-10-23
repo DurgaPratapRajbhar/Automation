@@ -149,15 +149,42 @@ test('make-super-admin command grants and revokes access', function () {
     $this->artisan('app:make-super-admin', ['email' => 'nobody@example.com'])->assertFailed();
 });
 
-test('is_super_admin cannot be set through registration', function () {
-    $this->postJson('/api/auth/register', [
-        'name' => 'Hacker',
-        'email' => 'h@example.com',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-        'workspace_name' => 'H',
-        'is_super_admin' => true,
-    ])->assertCreated();
+test('public registration is closed: only the super admin creates shops', function () {
+    $this->postJson('/api/auth/register', ['email' => 'h@example.com'])->assertNotFound();
 
-    expect(User::where('email', 'h@example.com')->first()->isSuperAdmin())->toBeFalse();
+    $owner = registerOwner($this);
+    $this->postJson('/api/admin/workspaces', ['workspace_name' => 'X', 'owner_email' => 'x@example.com'], adminHeaders($owner['token']))
+        ->assertForbidden();
+});
+
+test('super admin creates a shop with a new owner who can then log in', function () {
+    $admin = adminHeaders(makeSuperAdmin());
+
+    $this->postJson('/api/admin/workspaces', [
+        'workspace_name' => 'Sharma Kirana',
+        'owner_name' => 'Sharma',
+        'owner_email' => 'sharma@example.com',
+        'owner_password' => 'password123',
+    ], $admin)->assertCreated()->assertJsonPath('data.name', 'Sharma Kirana')->assertJsonPath('data.members_count', 1);
+
+    $this->postJson('/api/auth/login', ['email' => 'sharma@example.com', 'password' => 'password123'])
+        ->assertOk()
+        ->assertJsonPath('data.workspaces.0.name', 'Sharma Kirana')
+        ->assertJsonPath('data.workspaces.0.role.is_owner', true);
+});
+
+test('an existing user can own a second shop, but a super admin cannot own one', function () {
+    $admin = adminHeaders(makeSuperAdmin());
+    registerOwner($this);
+
+    $this->postJson('/api/admin/workspaces', ['workspace_name' => 'Second', 'owner_email' => 'owner@example.com'], $admin)
+        ->assertCreated();
+
+    $this->postJson('/api/admin/workspaces', ['workspace_name' => 'Nope', 'owner_email' => 'admin@example.com'], $admin)
+        ->assertUnprocessable()
+        ->assertJsonPath('message', 'A super admin account cannot own a shop. Use a separate email.');
+
+    $this->postJson('/api/admin/workspaces', ['workspace_name' => 'Nope', 'owner_email' => 'new@example.com'], $admin)
+        ->assertUnprocessable()
+        ->assertJsonPath('message', 'Owner name and password are needed to create a new owner account.');
 });

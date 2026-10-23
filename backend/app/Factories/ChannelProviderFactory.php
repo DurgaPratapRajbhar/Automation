@@ -17,7 +17,7 @@ class ChannelProviderFactory
     {
         $class = self::PROVIDERS["{$provider}.{$type}"] ?? null;
 
-        if (!$class) {
+        if (! $class) {
             throw new InvalidArgumentException(
                 "Unsupported channel provider: {$provider}.{$type}"
             );

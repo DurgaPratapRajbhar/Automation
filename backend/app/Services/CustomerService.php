@@ -32,7 +32,7 @@ class CustomerService
     {
         $data = $this->gstinService->applyStateCode($data);
 
-        if (!empty($data['phone'])) {
+        if (! empty($data['phone'])) {
             $this->ensurePhoneAvailable($workspaceId, $data['phone']);
         }
 
@@ -54,7 +54,7 @@ class CustomerService
             ]);
         }
 
-        if (!empty($data['phone'])) {
+        if (! empty($data['phone'])) {
             $this->ensurePhoneAvailable($workspaceId, $data['phone'], $customer->id);
         }
 
@@ -78,7 +78,7 @@ class CustomerService
     {
         $customer = $this->customerRepository->findInWorkspace($workspaceId, $customerId);
 
-        if (!$customer) {
+        if (! $customer) {
             throw new BusinessRuleException(__('customers.not_found'), 404);
         }
 

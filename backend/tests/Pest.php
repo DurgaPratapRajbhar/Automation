@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\JwtService;
 use Tests\TestCase;
 
 /*
@@ -43,20 +44,27 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-// Owner register karo -> naya workspace + Owner role
+// Super admin creates a shop with a new owner, then the owner logs in
 function registerOwner(TestCase $test, string $email = 'owner@example.com'): array
 {
-    $response = $test->postJson('/api/auth/register', [
-        'name' => 'Owner',
-        'email' => $email,
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
-        'workspace_name' => 'Acme ' . $email,
-    ])->assertCreated();
+    $admin = App\Models\User::firstOrCreate(
+        ['email' => 'setup-admin@example.com'],
+        ['name' => 'Setup Admin', 'password' => 'password123']
+    );
+    $admin->forceFill(['is_super_admin' => true])->save();
+
+    $test->postJson('/api/admin/workspaces', [
+        'workspace_name' => 'Acme '.$email,
+        'owner_name' => 'Owner',
+        'owner_email' => $email,
+        'owner_password' => 'password123',
+    ], ['Authorization' => 'Bearer '.tokenFor($admin->id)])->assertCreated();
+
+    $response = $test->postJson('/api/auth/login', ['email' => $email, 'password' => 'password123'])->assertOk();
 
     return [
         'token' => $response->json('data.access_token'),
-        'workspace_id' => $response->json('data.workspace.id'),
+        'workspace_id' => $response->json('data.workspaces.0.id'),
         'user_id' => $response->json('data.user.id'),
     ];
 }
@@ -71,7 +79,7 @@ function headersFor(string $token, int $workspaceId): array
 
 function tokenFor(int $userId): string
 {
-    return app(App\Services\JwtService::class)->generateAccessToken($userId);
+    return app(JwtService::class)->generateAccessToken($userId);
 }
 
 // Owner se role banwao, phir us role ke saath naya member add karo
@@ -86,7 +94,7 @@ function memberWithPermissions(TestCase $test, array $owner, string $roleName, a
 
     $userId = $test->postJson('/api/members', [
         'email' => $email,
-        'name' => $roleName . ' User',
+        'name' => $roleName.' User',
         'password' => 'password123',
         'role_id' => $roleId,
     ], headersFor($owner['token'], $owner['workspace_id']))

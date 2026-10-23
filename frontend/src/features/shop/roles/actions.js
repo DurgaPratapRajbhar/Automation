@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { backend } from '@/lib/backend';
 import { formError, roleValues } from '@/lib/forms';
@@ -14,6 +15,7 @@ export async function saveRole(roleId, previousState, formData) {
 
   if (!ok) return formError(data, values);
 
+  revalidatePath('/roles');
   redirect('/roles');
 }
 
@@ -22,5 +24,6 @@ export async function deleteRole(roleId) {
 
   if (!ok) return formError(data);
 
+  revalidatePath('/roles');
   redirect('/roles');
 }

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Collection;
 
 class Workspace extends Model
 {
@@ -28,7 +27,7 @@ class Workspace extends Model
             User::class,
             'workspace_user'
         )
-        ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function roles(): HasMany

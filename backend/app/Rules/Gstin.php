@@ -10,7 +10,7 @@ class Gstin implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_string($value) || !preg_match('/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i', $value)) {
+        if (! is_string($value) || ! preg_match('/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i', $value)) {
             $fail('rules.gstin')->translate();
         }
     }

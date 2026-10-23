@@ -16,13 +16,13 @@ class MakeSuperAdminCommand extends Command
     {
         $user = User::where('email', $this->argument('email'))->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->error('User not found.');
 
             return self::FAILURE;
         }
 
-        $user->forceFill(['is_super_admin' => !$this->option('revoke')])->save();
+        $user->forceFill(['is_super_admin' => ! $this->option('revoke')])->save();
 
         $this->info($this->option('revoke') ? 'Super admin access removed.' : 'User is now a super admin.');
 

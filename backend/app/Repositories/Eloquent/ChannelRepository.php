@@ -3,7 +3,6 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Channel;
-use App\Models\ChannelCredential;
 use App\Repositories\Contracts\ChannelRepositoryInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -67,15 +66,15 @@ class ChannelRepository implements ChannelRepositoryInterface
 
     public function phoneNumberIdExists(string $phoneNumberId, ?int $ignoreChannelId = null): bool
     {
-         return Channel::where('phone_number_id', $phoneNumberId)
-        ->when($ignoreChannelId, fn ($query) => $query->where('id', '!=', $ignoreChannelId))
-        ->exists();
+        return Channel::where('phone_number_id', $phoneNumberId)
+            ->when($ignoreChannelId, fn ($query) => $query->where('id', '!=', $ignoreChannelId))
+            ->exists();
     }
 
     public function findConnectedByPhoneNumberId(string $phoneNumberId): ?Channel
     {
-         return Channel::where('phone_number_id', $phoneNumberId)
-        ->where('status', 'connected')
-        ->first();
+        return Channel::where('phone_number_id', $phoneNumberId)
+            ->where('status', 'connected')
+            ->first();
     }
 }

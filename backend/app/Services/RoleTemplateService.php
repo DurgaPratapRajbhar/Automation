@@ -67,7 +67,7 @@ class RoleTemplateService
     {
         $template = $this->templateRepository->find($templateId);
 
-        if (!$template) {
+        if (! $template) {
             throw new BusinessRuleException(__('rbac.role_not_found'), 404);
         }
 
