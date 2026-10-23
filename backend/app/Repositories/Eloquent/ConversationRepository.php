@@ -21,6 +21,11 @@ class ConversationRepository implements ConversationRepositoryInterface
         );
     }
 
+    public function find(int $id): ?Conversation
+    {
+        return Conversation::find($id);
+    }
+
     public function touchLastMessage(Conversation $conversation): void
     {
         $conversation->update([

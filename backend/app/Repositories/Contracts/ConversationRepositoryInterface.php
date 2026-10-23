@@ -13,5 +13,7 @@ interface ConversationRepositoryInterface
         ?string $customerName
     ): Conversation;
 
+    public function find(int $id): ?Conversation;
+
     public function touchLastMessage(Conversation $conversation): void;
 }

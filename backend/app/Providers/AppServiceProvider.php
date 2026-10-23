@@ -103,6 +103,13 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            \App\Services\Contracts\AiResponderInterface::class,
+            $this->app->environment('testing')
+                ? \App\Services\Ai\NullAiResponder::class
+                : \App\Services\Ai\HttpAiResponder::class
+        );
+
+        $this->app->bind(
             CustomerRepositoryInterface::class,
             CustomerRepository::class
         );
