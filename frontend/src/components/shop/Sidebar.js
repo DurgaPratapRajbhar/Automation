@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { MENU } from '@/components/shop/menu';
+import NavLink from '@/components/ui/NavLink';
 
 export default function Sidebar({ access }) {
   const links = MENU.filter((item) => !item.permission || access.permissions.includes(item.permission));
@@ -10,9 +10,15 @@ export default function Sidebar({ access }) {
       <p className="mb-4 truncate font-semibold">{access.workspace.name}</p>
 
       {links.map((item) => (
-        <Link key={item.href} href={item.href} className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">
+        <NavLink
+          key={item.href}
+          href={item.href}
+          className="rounded-lg px-3 py-2"
+          activeClassName="bg-emerald-50 font-semibold text-emerald-800"
+          inactiveClassName="text-slate-700 hover:bg-slate-100"
+        >
           {item.label}
-        </Link>
+        </NavLink>
       ))}
 
       {/* Plain link: /logout is a route that clears the session */}

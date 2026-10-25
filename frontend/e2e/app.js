@@ -170,6 +170,40 @@ async (page) => {
     await expectText('updated successfully');
   });
 
+  await step('Knowledge: text entry is saved and learned by the AI', async () => {
+    await page.goto(`${BASE}/knowledge/new`);
+    await page.getByLabel('Title').fill(`Shop info ${run}`);
+    await page.getByLabel('About your shop').fill('We sell solar lights and panels. Open 9am to 7pm. Free delivery within 5 km.');
+    await save();
+    await expectUrl('/knowledge');
+    await reloadUntil(page.locator('tbody tr').filter({ hasText: `Shop info ${run}` }).getByText('Learned', { exact: true }));
+  });
+
+  await step('Knowledge: file upload is saved and learned by the AI', async () => {
+    await page.goto(`${BASE}/knowledge/new`);
+    await page.getByLabel('Title').fill(`Price list ${run}`);
+    await page.getByRole('radio', { name: 'Upload a file' }).check();
+    await page.setInputFiles('#file', { name: 'prices.txt', mimeType: 'text/plain', buffer: Buffer.from('Solar LED bulb 9W costs Rs 450.') });
+    await save();
+    await expectUrl('/knowledge');
+    const row = page.locator('tbody tr').filter({ hasText: `Price list ${run}` });
+    await reloadUntil(row.getByText('prices.txt'));
+    await reloadUntil(row.getByText('Learned', { exact: true }));
+  });
+
+  await step('Knowledge: edit text and delete the file entry', async () => {
+    await page.getByRole('link', { name: `Shop info ${run}` }).click();
+    await page.waitForURL(/\/knowledge\/\d+$/);
+    await page.getByLabel('About your shop').fill('We sell solar lights. Open 10am to 8pm.');
+    await save();
+    await expectUrl('/knowledge');
+    await page.getByRole('link', { name: `Price list ${run}` }).click();
+    await page.waitForURL(/\/knowledge\/\d+$/);
+    await page.getByRole('button', { name: 'Delete knowledge' }).click();
+    await expectUrl('/knowledge');
+    await reloadUntil(page.getByRole('link', { name: `Price list ${run}` }), { gone: true });
+  });
+
   await step('Owner: logout', async () => {
     await page.getByRole('link', { name: 'Logout' }).click();
     await expectUrl('/login');
@@ -181,7 +215,7 @@ async (page) => {
     await shopLogin(staff);
     await expectUrl('/dashboard');
     const menu = await page.locator('aside').innerText();
-    if (!menu.includes('Customers') || menu.includes('Roles') || menu.includes('Shop profile')) throw new Error(`menu: ${menu.replace(/\n/g, ', ')}`);
+    if (!menu.includes('Customers') || menu.includes('Roles') || menu.includes('Shop profile') || menu.includes('Knowledge')) throw new Error(`menu: ${menu.replace(/\n/g, ', ')}`);
     await page.goto(`${BASE}/customers`);
     await page.getByRole('heading', { name: 'Customers' }).waitFor();
     if (await page.getByRole('link', { name: 'New customer' }).count()) throw new Error('"New customer" is visible');

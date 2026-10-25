@@ -97,11 +97,27 @@
 | T36 | LangGraph: Order agent, Jev router, Dukaan Jarvis | ⬜ |
 | T37 | Deploy: k3s on VPS, storage, backup | ⬜ |
 
+## Phase H: WhatsApp AI chatbot (Basic + Premium plan)
+Basic plan = bot + hamare dashboard ka Inbox (kam daam). Premium plan = dukaandar khud Meta se joDe, sab seedha uske WhatsApp Business app me (coexistence, zyada daam).
+
+| # | Task | Status | Tests | Commit | Tareekh |
+|---|---|---|---|---|---|
+| T38 | Shop knowledge (text/file) CRUD + permissions | ✅ | 6 tests | 1d8fb51 | 2026-10-23 |
+| T39 | ai-service: embed (pgvector) + Agentic RAG (LangGraph) + /ask | ✅ | manual | 8c489cb | 2026-10-23 |
+| T40 | WhatsApp AI reply (queue) + file se seekhna (pdf/docx/txt) | ✅ live test pass | 3 tests | ee3a706 | 2026-10-23 |
+| T41 | Shop type (kirana, medical, solar...) admin form + list + filter | ⬜ | | | |
+| T42 | Inbox (Basic): chats list, customer + bot messages (AI tag), unread count, staff reply, auto-refresh; sidebar active highlight | ✅ browser me verify | 6 tests | ⬜ | 2026-10-25 |
+| T43 | Owner alert: naya customer ya bot "pata nahi" bole to owner ke WhatsApp par khabar | ⬜ | | | |
+| T44 | Premium: Meta Tech Provider approval + Embedded Signup ("Connect WhatsApp") | ⬜ Meta approval user ki taraf se | | | |
+| T45 | Premium: coexistence webhooks (owner app se reply save, tab bot ruke) | ⬜ | | | |
+
 ---
 
 ## Log (har task ke baad ek line)
 | Tareekh | Task | Kya hua |
 |---|---|---|
+| 2026-10-25 | T42 | Inbox API (unread, search, reply, permissions conversations.view + messages.create) + Inbox/chat pages + menu active highlight. 67 backend tests pass. Commit baaki |
+| 2026-10-25 | T38-T45 | AI chatbot live (asli number par test pass). Plan tay: Basic (Inbox) pehle, Premium (Meta coexistence) saath me approval ke baad |
 | 2026-10-22 | T6, T34 | Permissions route-name se (Enum/config hate), role templates; frontend banaya aur browser me poora test kiya (register, login, staff permissions, customers CRUD, roles tree, members, profile, admin suspend/templates). 47 backend tests pass, `next build` saaf |
 | 2026-10-23 | T5 | Dukaan profile + shared GstinService (customers bhi isi se) + UpiId rule. Sab tests pass. Commit baaki |
 | 2026-10-22 | T9, T6, T7 | Customers module; purana RBAC hata ke Spatie (teams) + Permission enum + Super Admin; test env fix (tests pehle dev Postgres pe chal rahe the). 37 tests pass. Commit baaki |

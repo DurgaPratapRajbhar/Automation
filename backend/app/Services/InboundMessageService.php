@@ -72,6 +72,7 @@ class InboundMessageService
                 ]);
 
                 $this->conversations->touchLastMessage($conversation);
+                $this->conversations->incrementUnread($conversation);
 
                 return $message;
             });

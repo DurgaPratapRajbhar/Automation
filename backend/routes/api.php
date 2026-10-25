@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminWorkspaceController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\KnowledgeSourceController;
 use App\Http\Controllers\Api\MemberController;
@@ -32,7 +33,7 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
     | (index/show -> view, store -> create, update -> edit, destroy -> delete).
     | Run `php artisan permissions:sync` after adding routes.
     */
-    Route::middleware('permission')->whereNumber(['roleId', 'userId', 'channelId', 'customerId', 'knowledgeSourceId'])->group(function () {
+    Route::middleware('permission')->whereNumber(['roleId', 'userId', 'channelId', 'customerId', 'knowledgeSourceId', 'conversationId'])->group(function () {
 
         Route::get('/workspace/profile', [WorkspaceProfileController::class, 'show'])->name('workspace.show');
         Route::put('/workspace/profile', [WorkspaceProfileController::class, 'update'])->name('workspace.update');
@@ -70,6 +71,13 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         Route::get('/knowledge-sources/{knowledgeSourceId}', [KnowledgeSourceController::class, 'show'])->name('knowledge-sources.show');
         Route::put('/knowledge-sources/{knowledgeSourceId}', [KnowledgeSourceController::class, 'update'])->name('knowledge-sources.update');
         Route::delete('/knowledge-sources/{knowledgeSourceId}', [KnowledgeSourceController::class, 'destroy'])->name('knowledge-sources.destroy');
+
+        // Inbox: dukaan ki WhatsApp chats. Reply = "messages.create" permission
+        Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
+        Route::get('/conversations/{conversationId}', [ConversationController::class, 'show'])->name('conversations.show');
+        Route::post('/conversations/{conversationId}/messages', [ConversationController::class, 'reply'])
+            ->middleware('throttle:30,1')
+            ->name('messages.store');
 
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });

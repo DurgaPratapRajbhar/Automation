@@ -28,4 +28,10 @@ class Message extends Model
     {
         return $this->belongsTo(Conversation::class);
     }
+
+    // Kis staff ne reply kiya (null = bot)
+    public function sentBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sent_by_user_id');
+    }
 }

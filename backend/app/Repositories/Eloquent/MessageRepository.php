@@ -4,12 +4,24 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Message;
 use App\Repositories\Contracts\MessageRepositoryInterface;
+use Illuminate\Support\Collection;
 
 class MessageRepository implements MessageRepositoryInterface
 {
     public function find(int $id): ?Message
     {
         return Message::find($id);
+    }
+
+    public function forConversation(int $conversationId, int $limit): Collection
+    {
+        return Message::with('sentBy:id,name')
+            ->where('conversation_id', $conversationId)
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->values();
     }
 
     public function create(array $data): Message

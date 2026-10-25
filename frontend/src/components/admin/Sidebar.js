@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import NavLink from '@/components/ui/NavLink';
 
 const MENU = [
   { label: 'Workspaces', href: '/admin/workspaces' },
@@ -12,9 +12,15 @@ export default function AdminSidebar({ user }) {
       <p className="mb-4 truncate text-sm text-indigo-300">{user.email}</p>
 
       {MENU.map((item) => (
-        <Link key={item.href} href={item.href} className="rounded-lg px-3 py-2 hover:bg-indigo-900">
+        <NavLink
+          key={item.href}
+          href={item.href}
+          className="rounded-lg px-3 py-2"
+          activeClassName="bg-indigo-800 font-semibold text-white"
+          inactiveClassName="hover:bg-indigo-900"
+        >
           {item.label}
-        </Link>
+        </NavLink>
       ))}
 
       <a href="/admin/logout" className="mt-auto rounded-lg px-3 py-2 text-indigo-300 hover:bg-indigo-900">Logout</a>
