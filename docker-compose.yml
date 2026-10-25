@@ -38,6 +38,9 @@ services:
         - redis
       env_file:
         - ./backend/.env
+      environment:
+        # artisan serve runs 4 PHP workers, so one slow request does not block the rest
+        PHP_CLI_SERVER_WORKERS: "4"
 
    frontend:
       build:
