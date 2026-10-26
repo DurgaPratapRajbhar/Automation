@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversation\ReplyRequest;
+use App\Http\Requests\Conversation\SendTemplateRequest;
 use App\Services\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,6 +55,26 @@ class ConversationController extends Controller
         return response()->json([
             'success' => true,
             'message' => __($message['status'] === 'failed' ? 'conversations.send_failed' : 'conversations.sent'),
+            'data' => $message,
+        ], 201);
+    }
+
+    public function sendTemplate(SendTemplateRequest $request, int $conversationId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        $message = $this->conversationService->sendTemplate(
+            $workspace->id,
+            $conversationId,
+            $request->user()->id,
+            $request->validated('name'),
+            $request->validated('language'),
+            $request->validated('parameters') ?? []
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => __($message['status'] === 'failed' ? 'templates.send_failed' : 'templates.sent'),
             'data' => $message,
         ], 201);
     }

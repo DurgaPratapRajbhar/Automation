@@ -61,6 +61,25 @@ class WhatsAppTemplateService
         ];
     }
 
+    // An APPROVED template from Meta (never trust a stale or rejected one): its body and number of blanks
+    public function approved(int $workspaceId, int $channelId, string $name, string $language): array
+    {
+        [$wabaId, $token] = $this->account($workspaceId, $channelId);
+
+        $template = collect($this->graph->get("{$wabaId}/message_templates", $token, [
+            'name' => $name,
+            'fields' => 'name,status,language,components',
+        ])->json('data') ?? [])->first(fn (array $t) => ($t['name'] ?? null) === $name && ($t['language'] ?? null) === $language);
+
+        if (! $template || ($template['status'] ?? null) !== 'APPROVED') {
+            throw new BusinessRuleException(__('templates.not_approved', ['name' => $name]));
+        }
+
+        $body = $this->present($template)['body'] ?? '';
+
+        return ['body' => $body, 'blanks' => $this->placeholderCount($body)];
+    }
+
     public function delete(int $workspaceId, int $channelId, string $name): void
     {
         [$wabaId, $token] = $this->account($workspaceId, $channelId);

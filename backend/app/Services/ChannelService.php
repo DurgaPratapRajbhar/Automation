@@ -109,8 +109,27 @@ class ChannelService
         string $recipient,
         string $message
     ): array {
+        [$provider, $credentials] = $this->providerFor($workspaceId, $channelId);
 
-        // Service ko nahi pata data kahan se aaya — bas repository se maanga
+        return $provider->sendMessage($credentials, $recipient, $message);
+    }
+
+    public function sendTemplate(
+        int $workspaceId,
+        int $channelId,
+        string $recipient,
+        string $templateName,
+        string $language,
+        array $parameters
+    ): array {
+        [$provider, $credentials] = $this->providerFor($workspaceId, $channelId);
+
+        return $provider->sendTemplate($credentials, $recipient, $templateName, $language, $parameters);
+    }
+
+    // The provider strategy + credentials of a connected channel in this workspace
+    private function providerFor(int $workspaceId, int $channelId): array
+    {
         $channel = $this->channelRepository
             ->findConnectedInWorkspace($workspaceId, $channelId);
 
@@ -129,14 +148,7 @@ class ChannelService
             $channel->provider
         );
 
-        return $provider->sendMessage(
-            [
-                'access_token' => $credential->access_token,
-                ...($credential->config ?? []),
-            ],
-            $recipient,
-            $message
-        );
+        return [$provider, ['access_token' => $credential->access_token, ...($credential->config ?? [])]];
     }
 
     public function ensurePhoneNumberIdAvailable(string $phoneNumberId, ?int $ignoreChannelId = null): void

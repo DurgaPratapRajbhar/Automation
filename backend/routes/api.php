@@ -93,6 +93,10 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         Route::post('/conversations/{conversationId}/messages', [ConversationController::class, 'reply'])
             ->middleware('throttle:30,1')
             ->name('messages.store');
+        // Approved template (works after the 24-hour window) -> permission messages.template
+        Route::post('/conversations/{conversationId}/template', [ConversationController::class, 'sendTemplate'])
+            ->middleware('throttle:30,1')
+            ->name('messages.template');
 
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });

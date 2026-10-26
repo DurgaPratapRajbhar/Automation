@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import ActionButton from '@/components/ui/ActionButton';
 import { deleteChannel } from '@/features/shop/whatsapp/actions';
 
-export default function ChannelList({ channels, canDelete }) {
+export default function ChannelList({ channels, canDelete, canTemplates }) {
   if (channels.length === 0) {
     return <p className="text-slate-500">No WhatsApp number connected yet.</p>;
   }
@@ -25,7 +26,10 @@ export default function ChannelList({ channels, canDelete }) {
               <td className="px-4 py-3">
                 <span className={channel.status === 'connected' ? 'text-green-700' : 'text-red-700'}>{channel.status}</span>
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="space-x-3 px-4 py-3 text-right">
+                {canTemplates && (
+                  <Link href={`/settings/whatsapp/${channel.id}/templates`} className="text-sm font-medium underline">Templates</Link>
+                )}
                 {canDelete && (
                   <ActionButton
                     action={deleteChannel.bind(null, channel.id)}

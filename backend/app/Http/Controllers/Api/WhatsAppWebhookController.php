@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\InboundMessageService;
+use App\Services\OutboundMessageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class WhatsAppWebhookController extends Controller
 {
     public function __construct(
-        private InboundMessageService $inboundMessages
+        private InboundMessageService $inboundMessages,
+        private OutboundMessageService $outboundMessages,
     ) {}
 
     public function verify(Request $request)
@@ -56,10 +58,13 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['success' => false], 403);
         }
 
-        // Save the message + ring the MessageReceived bell
-        $this->inboundMessages->handle(
-            $request->input('entry.0.changes.0.value', [])
-        );
+        $value = $request->input('entry.0.changes.0.value', []);
+
+        // Customer's new message: save it + ring the MessageReceived bell
+        $this->inboundMessages->handle($value);
+
+        // What happened to our messages: sent / delivered / read / failed
+        $this->outboundMessages->applyStatuses($value);
 
         // Always 200 quickly — otherwise Meta keeps retrying
         return response()->json(['success' => true]);

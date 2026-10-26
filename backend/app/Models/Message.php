@@ -16,6 +16,7 @@ class Message extends Model
         'body',
         'payload',
         'status',
+        'error',
         'sent_by_user_id',
     ];
 

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use App\Services\Contracts\AiResponderInterface;
-use Throwable;
 
 // Customer ke message par AI jawaab banao, outbound save karo, aur WhatsApp se bhejo.
 // AI khud Python ai-service me; yahan sirf orchestration.
@@ -16,6 +15,7 @@ class AiReplyService
         private ConversationRepositoryInterface $conversations,
         private ChannelService $channelService,
         private AiResponderInterface $responder,
+        private OutboundMessageService $outbound,
     ) {}
 
     public function replyTo(int $messageId): void
@@ -50,18 +50,13 @@ class AiReplyService
             'payload' => ['ai' => true],
         ]);
 
-        // Phir WhatsApp se bhejo; fail hua to status failed
-        try {
-            $this->channelService->sendMessage(
-                $message->workspace_id,
-                $conversation->channel_id,
-                $conversation->customer_phone,
-                $answer,
-            );
-        } catch (Throwable $e) {
-            $this->messages->setStatus($outbound, 'failed');
-            report($e);
-        }
+        // Phir WhatsApp se bhejo; fail hua to status failed + wajah
+        $this->outbound->deliver($outbound, fn () => $this->channelService->sendMessage(
+            $message->workspace_id,
+            $conversation->channel_id,
+            $conversation->customer_phone,
+            $answer,
+        ));
 
         $this->conversations->touchLastMessage($conversation);
     }

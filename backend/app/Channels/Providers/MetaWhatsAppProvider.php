@@ -13,28 +13,54 @@ class MetaWhatsAppProvider implements ChannelProviderInterface
         string $recipient,
         string $message
     ): array {
+        return $this->send($credentials, [
+            'to' => $recipient,
+            'type' => 'text',
+            'text' => [
+                'body' => $message,
+            ],
+        ]);
+    }
 
+    public function sendTemplate(
+        array $credentials,
+        string $recipient,
+        string $templateName,
+        string $language,
+        array $parameters
+    ): array {
+        $template = [
+            'name' => $templateName,
+            'language' => ['code' => $language],
+        ];
+
+        if ($parameters !== []) {
+            $template['components'] = [[
+                'type' => 'body',
+                'parameters' => array_map(fn (string $value) => ['type' => 'text', 'text' => $value], array_values($parameters)),
+            ]];
+        }
+
+        return $this->send($credentials, [
+            'to' => $recipient,
+            'type' => 'template',
+            'template' => $template,
+        ]);
+    }
+
+    private function send(array $credentials, array $payload): array
+    {
         if (empty($credentials['access_token']) || empty($credentials['phone_number_id'])) {
             throw new RuntimeException('WhatsApp credentials incomplete (access_token / phone_number_id).');
         }
 
-        $accessToken = $credentials['access_token'];
-        $phoneNumberId = $credentials['phone_number_id'];
-
         $baseUrl = config('services.meta.graph_url');
         $version = config('services.meta.graph_version');
 
-        $url = "{$baseUrl}/{$version}/{$phoneNumberId}/messages";
+        $url = "{$baseUrl}/{$version}/{$credentials['phone_number_id']}/messages";
 
-        $response = Http::withToken($accessToken)
-            ->post($url, [
-                'messaging_product' => 'whatsapp',
-                'to' => $recipient,
-                'type' => 'text',
-                'text' => [
-                    'body' => $message,
-                ],
-            ]);
+        $response = Http::withToken($credentials['access_token'])
+            ->post($url, ['messaging_product' => 'whatsapp', ...$payload]);
 
         if ($response->failed()) {
 

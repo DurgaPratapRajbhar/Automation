@@ -26,7 +26,7 @@ export default async function WhatsAppPage() {
           : <Alert message="WhatsApp signup is not set up on the server yet." />
       )}
 
-      <ChannelList channels={data.data} canDelete={await can('channels.delete')} />
+      <ChannelList channels={data.data} canDelete={await can('channels.delete')} canTemplates={await can('templates.view')} />
     </div>
   );
 }

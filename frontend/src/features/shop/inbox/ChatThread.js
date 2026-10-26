@@ -1,5 +1,22 @@
 import { formatTime } from '@/features/shop/inbox/format';
 
+// WhatsApp-style ticks for our messages, as Meta reports them
+const TICKS = {
+  sent: { mark: '✓', label: 'Sent', tone: '' },
+  delivered: { mark: '✓✓', label: 'Delivered', tone: '' },
+  read: { mark: '✓✓', label: 'Read', tone: 'text-sky-500' },
+};
+
+function Status({ message }) {
+  if (message.status === 'failed') {
+    return <span className="ml-1 font-semibold text-red-500">· not sent</span>;
+  }
+
+  const tick = TICKS[message.status];
+
+  return tick ? <span title={tick.label} aria-label={tick.label} className={`ml-1 ${tick.tone}`}>{tick.mark}</span> : null;
+}
+
 // Customer on the left, shop (bot or staff) on the right
 function Bubble({ message }) {
   const mine = message.direction === 'outbound';
@@ -14,8 +31,11 @@ function Bubble({ message }) {
         <p className="whitespace-pre-wrap break-words">{message.body ?? `[${message.type}]`}</p>
         <p className={`mt-1 text-right text-[11px] ${mine && !message.is_ai ? 'text-slate-400' : 'text-slate-500'}`}>
           {formatTime(message.created_at)}
-          {message.status === 'failed' && <span className="ml-1 font-semibold text-red-500">· not sent</span>}
+          {mine && <Status message={message} />}
         </p>
+        {message.status === 'failed' && message.error && (
+          <p className="mt-1 break-all rounded bg-red-50 px-2 py-1 text-xs text-red-700">{message.error}</p>
+        )}
       </div>
     </div>
   );
