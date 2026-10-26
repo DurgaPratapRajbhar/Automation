@@ -51,6 +51,10 @@ return [
         ),
 
         'app_secret' => env('META_APP_SECRET'),
+
+        // Embedded Signup ("Connect WhatsApp"): our app + the Login for Business configuration
+        'app_id' => env('META_APP_ID'),
+        'embedded_signup_config_id' => env('META_ES_CONFIG_ID'),
     ],
 
     'ai' => [

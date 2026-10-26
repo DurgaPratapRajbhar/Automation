@@ -60,6 +60,8 @@ services:
         # File watching on a Windows bind mount
         WATCHPACK_POLLING: "true"
         NEXT_TELEMETRY_DISABLED: "1"
+        # Public test domain (ngrok) for the Meta popup + webhook
+        ALLOWED_DEV_ORIGINS: vaporizer-parrot-sapling.ngrok-free.dev
       depends_on:
         - backend
 

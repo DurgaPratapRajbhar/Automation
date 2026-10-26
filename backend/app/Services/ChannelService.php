@@ -27,7 +27,8 @@ class ChannelService
         return $this->present($this->findOrFail($workspaceId, $channelId));
     }
 
-    public function create(int $workspaceId, array $data): array
+    // $extraConfig = internal values only (e.g. the encrypted register PIN), never from the request
+    public function create(int $workspaceId, array $data, array $extraConfig = []): array
     {
         if (! $this->providerFactory->supports($data['type'], $data['provider'])) {
             throw new BusinessRuleException("Unsupported channel: {$data['provider']}.{$data['type']}");
@@ -52,6 +53,7 @@ class ChannelService
                 'config' => [
                     'phone_number_id' => $credentials['phone_number_id'],
                     'waba_id' => $credentials['waba_id'] ?? null,
+                    ...$extraConfig,
                 ],
             ]
         );
@@ -137,7 +139,7 @@ class ChannelService
         );
     }
 
-    private function ensurePhoneNumberIdAvailable(string $phoneNumberId, ?int $ignoreChannelId = null): void
+    public function ensurePhoneNumberIdAvailable(string $phoneNumberId, ?int $ignoreChannelId = null): void
     {
         if ($this->channelRepository->phoneNumberIdExists($phoneNumberId, $ignoreChannelId)) {
             throw new BusinessRuleException('This WhatsApp number is already connected to a channel.');

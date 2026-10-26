@@ -7,10 +7,12 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChannelController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\EmbeddedSignupController;
 use App\Http\Controllers\Api\KnowledgeSourceController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\WhatsAppTemplateController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\WorkspaceAccessController;
 use App\Http\Controllers\Api\WorkspaceProfileController;
@@ -53,6 +55,19 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
 
         Route::get('/channels', [ChannelController::class, 'index'])->name('channels.index');
         Route::post('/channels', [ChannelController::class, 'store'])->name('channels.store');
+        // "Connect WhatsApp" (Meta Embedded Signup) -> permission channels.connect
+        Route::post('/channels/connect', [EmbeddedSignupController::class, 'connect'])
+            ->middleware('throttle:10,1')
+            ->name('channels.connect');
+
+        // WhatsApp message templates of a connected number (stored at Meta)
+        Route::get('/channels/{channelId}/templates', [WhatsAppTemplateController::class, 'index'])->name('templates.index');
+        Route::post('/channels/{channelId}/templates', [WhatsAppTemplateController::class, 'store'])
+            ->middleware('throttle:20,1')
+            ->name('templates.store');
+        Route::delete('/channels/{channelId}/templates/{templateName}', [WhatsAppTemplateController::class, 'destroy'])
+            ->where('templateName', '[a-z0-9_]+')
+            ->name('templates.destroy');
         Route::get('/channels/{channelId}', [ChannelController::class, 'show'])->name('channels.show');
         Route::put('/channels/{channelId}', [ChannelController::class, 'update'])->name('channels.update');
         Route::delete('/channels/{channelId}', [ChannelController::class, 'destroy'])->name('channels.destroy');

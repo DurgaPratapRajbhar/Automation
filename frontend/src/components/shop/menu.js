@@ -3,6 +3,7 @@
 export const MENU = [
   { label: 'Dashboard', href: '/dashboard', permission: null },
   { label: 'Inbox', href: '/inbox', permission: 'conversations.view' },
+  { label: 'WhatsApp', href: '/settings/whatsapp', permission: 'channels.view' },
   { label: 'Customers', href: '/customers', permission: 'customers.view' },
   { label: 'Knowledge', href: '/knowledge', permission: 'knowledge-sources.view' },
   { label: 'Members', href: '/members', permission: 'members.view' },

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Channel\StoreChannelRequest;
 use App\Http\Requests\Channel\UpdateChannelRequest;
 use App\Services\ChannelService;
+use App\Services\EmbeddedSignupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -15,7 +16,8 @@ use Throwable;
 class ChannelController extends Controller
 {
     public function __construct(
-        private ChannelService $channelService
+        private ChannelService $channelService,
+        private EmbeddedSignupService $embeddedSignupService
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -25,6 +27,8 @@ class ChannelController extends Controller
         return response()->json([
             'success' => true,
             'data' => $this->channelService->getChannels($workspace->id),
+            // For the "Connect WhatsApp" popup (public values only)
+            'embedded_signup' => $this->embeddedSignupService->publicConfig(),
         ]);
     }
 
