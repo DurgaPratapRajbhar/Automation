@@ -1,0 +1,45 @@
+# Production image: php-fpm only, no dev packages, code baked in (no bind mount)
+FROM php:8.5-fpm
+
+WORKDIR /var/www/html
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    unzip \
+    libpq-dev \
+    libzip-dev \
+    libicu-dev \
+    && docker-php-ext-install \
+        pdo \
+        pdo_pgsql \
+        pgsql \
+        zip \
+        intl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Code never changes inside a running container, so opcache skips file checks
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && { \
+      echo 'opcache.enable=1'; \
+      echo 'opcache.enable_cli=1'; \
+      echo 'opcache.memory_consumption=256'; \
+      echo 'opcache.max_accelerated_files=20000'; \
+      echo 'opcache.validate_timestamps=0'; \
+    } > /usr/local/etc/php/conf.d/opcache.ini \
+    && { \
+      echo 'upload_max_filesize=20M'; \
+      echo 'post_max_size=25M'; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Dependencies first, so a code change does not reinstall them
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
+
+COPY . .
+
+RUN composer dump-autoload --optimize --no-dev \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+CMD ["php-fpm"]
