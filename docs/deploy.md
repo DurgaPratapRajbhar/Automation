@@ -1,7 +1,7 @@
 # Deploy: app.scriptdp.com
 
 Server par Docker hona chahiye, aur ek shared network `web` jisme server ka Caddy chalta hai
-(Caddy `app.scriptdp.com` ko `frontend:3000` par bhejta hai).
+(Caddy `app.scriptdp.com` ko `app-frontend:3000` par bhejta hai).
 
 ## Pehli baar
 

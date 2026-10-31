@@ -61,8 +61,11 @@ services:
     depends_on:
       - backend-web
     networks:
-      - default
-      - web
+      default:
+      # Unique name on the shared network (other projects also have a "frontend")
+      web:
+        aliases:
+          - app-frontend
 
   ai-service:
     build:
