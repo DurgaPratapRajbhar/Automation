@@ -1,0 +1,25 @@
+# One front door for every site on the server. Caddy gets and renews the SSL certificates itself.
+# Each site is a separate Docker project; its website joins the shared "web" network under the name used here.
+
+app.scriptdp.com {
+	encode gzip
+	reverse_proxy app-frontend:3000
+}
+
+scriptdp.com {
+	encode gzip
+	reverse_proxy blog-frontend:3000
+}
+
+solarlc.com {
+	encode gzip
+	reverse_proxy solar-frontend:3000
+}
+
+www.scriptdp.com {
+	redir https://scriptdp.com{uri} permanent
+}
+
+www.solarlc.com {
+	redir https://solarlc.com{uri} permanent
+}
