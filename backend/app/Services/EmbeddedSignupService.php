@@ -7,7 +7,7 @@ use App\Services\Meta\MetaGraph;
 use Illuminate\Support\Facades\Crypt;
 
 // "Connect WhatsApp": after the Meta popup, turn its code into a working channel for the shop.
-// 1. code -> business token  2. subscribe WABA to our app  3. register the number  4. save channel
+// 1. code -> business token  2. subscribe WABA to our app  3. register the number (unless it already is)  4. save channel
 class EmbeddedSignupService
 {
     public function __construct(
@@ -43,11 +43,16 @@ class EmbeddedSignupService
         // Messages of this WABA now reach our webhook
         $this->graph->post("{$wabaId}/subscribed_apps", $token);
 
-        // Register on Cloud API with a PIN we generate and keep (needed to re-register later)
-        $pin = (string) random_int(100000, 999999);
-        $this->graph->post("{$phoneNumberId}/register", $token, ['messaging_product' => 'whatsapp', 'pin' => $pin]);
+        $phone = $this->graph->get($phoneNumberId, $token, ['fields' => 'verified_name,display_phone_number,platform_type'])->json();
 
-        $phone = $this->graph->get($phoneNumberId, $token, ['fields' => 'verified_name,display_phone_number'])->json();
+        // A number already on Cloud API (set up earlier, maybe by another tool) keeps its registration:
+        // registering again would need its old two-step PIN, which we do not have
+        $pin = null;
+        if (($phone['platform_type'] ?? null) !== 'CLOUD_API') {
+            // Register with a PIN we generate and keep (needed to re-register later)
+            $pin = (string) random_int(100000, 999999);
+            $this->graph->post("{$phoneNumberId}/register", $token, ['messaging_product' => 'whatsapp', 'pin' => $pin]);
+        }
 
         return $this->channelService->create($workspaceId, [
             'type' => 'whatsapp',
@@ -58,7 +63,7 @@ class EmbeddedSignupService
                 'phone_number_id' => $phoneNumberId,
                 'waba_id' => $wabaId,
             ],
-        ], ['pin' => Crypt::encryptString($pin)]);
+        ], $pin ? ['pin' => Crypt::encryptString($pin)] : []);
     }
 
     // The popup's code is valid for ~30 seconds and only once

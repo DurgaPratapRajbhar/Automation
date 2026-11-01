@@ -61,6 +61,36 @@ test('connect turns the popup code into a working channel', function () {
         && $r['pin'] === $pin);
 });
 
+test('a number already on Cloud API is connected without registering it again', function () {
+    $owner = registerOwner($this);
+
+    Http::fake(function (Request $request) {
+        $url = $request->url();
+
+        return match (true) {
+            str_contains($url, '/oauth/access_token') => Http::response(['access_token' => 'BIZ_TOKEN']),
+            str_contains($url, '/subscribed_apps') => Http::response(['success' => true]),
+            str_contains($url, '/register') => Http::response(['error' => ['message' => 'Two-step verification PIN mismatch.']], 400),
+            str_contains($url, '/555000222') => Http::response([
+                'verified_name' => 'ScriptDP', 'display_phone_number' => '+91 83569 74324', 'platform_type' => 'CLOUD_API',
+            ]),
+            default => Http::response([], 500),
+        };
+    });
+
+    $this->postJson('/api/channels/connect', ['code' => 'CODE', 'waba_id' => '111222333', 'phone_number_id' => '555000222'], headersFor($owner['token'], $owner['workspace_id']))
+        ->assertCreated()
+        ->assertJsonPath('data.name', 'ScriptDP +91 83569 74324')
+        ->assertJsonPath('data.phone_number_id', '555000222');
+
+    Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/register'));
+    Http::assertSent(fn (Request $r) => str_contains($r->url(), '/111222333/subscribed_apps'));
+
+    // We did not set its PIN, so none is stored
+    expect(Channel::with('credential')->where('phone_number_id', '555000222')->first()->credential->config)
+        ->not->toHaveKey('pin');
+});
+
 test('a rejected code gives a clear error and creates nothing', function () {
     $owner = registerOwner($this);
 
