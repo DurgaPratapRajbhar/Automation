@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Role;
+use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\WorkspaceRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
@@ -30,15 +31,15 @@ class AuthService
             ]);
         }
 
-        $accessToken = $this->jwtService
-            ->generateAccessToken($user->id);
+        return $this->issueSession($user);
+    }
 
-        $refreshToken = $this->refreshTokenService
-            ->create($user->id);
-
+    // Tokens + the user's shops; used after a password login, a signup and a Google login
+    public function issueSession(User $user): array
+    {
         return [
-            'access_token' => $accessToken,
-            'refresh_token' => $refreshToken,
+            'access_token' => $this->jwtService->generateAccessToken($user->id),
+            'refresh_token' => $this->refreshTokenService->create($user->id),
             'token_type' => 'Bearer',
             'expires_in' => (int) config('jwt.ttl'),
             'user' => [
@@ -48,6 +49,16 @@ class AuthService
             ],
             'workspaces' => $this->workspacesFor($user->id),
         ];
+    }
+
+    // A user with a password must give the current one; a Google-only user has none yet
+    public function changePassword(User $user, ?string $currentPassword, string $newPassword): void
+    {
+        if ($user->has_password && ! Hash::check((string) $currentPassword, $user->password)) {
+            throw ValidationException::withMessages(['current_password' => [__('auth.current_password_wrong')]]);
+        }
+
+        $this->userRepository->updatePassword($user, $newPassword);
     }
 
     public function refresh(string $plainRefreshToken): array

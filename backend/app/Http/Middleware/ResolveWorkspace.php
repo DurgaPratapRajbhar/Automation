@@ -43,6 +43,10 @@ class ResolveWorkspace
             if ($workspace->status !== WorkspaceStatus::Active->value) {
                 return $this->deny('rbac.workspace_suspended', 403);
             }
+
+            if ($workspace->trialExpired()) {
+                return $this->deny('rbac.trial_ended', 403, ['phone' => config('trial.contact_phone')]);
+            }
         } elseif (! $workspace) {
             return $this->deny('rbac.workspace_not_found', 404);
         }
@@ -62,8 +66,8 @@ class ResolveWorkspace
         return $next($request);
     }
 
-    private function deny(string $messageKey, int $status): JsonResponse
+    private function deny(string $messageKey, int $status, array $replace = []): JsonResponse
     {
-        return response()->json(['success' => false, 'message' => __($messageKey)], $status);
+        return response()->json(['success' => false, 'message' => __($messageKey, $replace)], $status);
     }
 }

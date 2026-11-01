@@ -15,6 +15,8 @@ class UpdateWorkspaceRequest extends FormRequest
     {
         return [
             'workspace_name' => ['required', 'string', 'max:255'],
+            // Empty = not a trial (paid); a date moves the end of the trial
+            'trial_ends_at' => ['nullable', 'date'],
         ];
     }
 }

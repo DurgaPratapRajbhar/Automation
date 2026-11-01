@@ -3,7 +3,7 @@ import { ADMIN_COOKIES, COOKIES, COOKIE_OPTIONS, THIRTY_DAYS } from '@/lib/cooki
 
 // Two separate areas, each with its own login and session cookies
 const AREAS = {
-  shop: { cookies: COOKIES, guestPages: ['/login'], login: '/login', home: '/dashboard', logout: '/logout' },
+  shop: { cookies: COOKIES, guestPages: ['/login', '/signup'], login: '/login', home: '/dashboard', logout: '/logout' },
   admin: { cookies: ADMIN_COOKIES, guestPages: ['/admin/login'], login: '/admin/login', home: '/admin', logout: '/admin/logout' },
 };
 

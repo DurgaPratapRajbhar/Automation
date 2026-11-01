@@ -25,13 +25,14 @@ ask() { # ask VAR "label"   (hidden input, must not be empty)
 ask GEMINI_API_KEY "Google Gemini API key"
 ask META_APP_SECRET "Meta app secret (App settings > Basic > App secret)"
 ask META_WEBHOOK_VERIFY_TOKEN "Meta webhook verify token (the one set in the Meta webhook)"
+read -rp "Google Client ID for \"Sign in with Google\" (press Enter to skip for now): " GOOGLE_CLIENT_ID
 
 DB_PASSWORD="$(openssl rand -hex 24)"
 APP_KEY="base64:$(openssl rand -base64 32)"
 
 umask 077
 
-printf 'POSTGRES_PASSWORD=%s\n' "$DB_PASSWORD" > .env
+printf 'POSTGRES_PASSWORD=%s\nGOOGLE_CLIENT_ID=%s\n' "$DB_PASSWORD" "$GOOGLE_CLIENT_ID" > .env
 
 cat > backend/.env <<EOF
 APP_NAME=ScriptDP

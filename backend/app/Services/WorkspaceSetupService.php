@@ -49,6 +49,7 @@ class WorkspaceSetupService
                 'slug' => Str::slug($data['workspace_name']).'-'.Str::lower(Str::random(6)),
                 'type' => $data['workspace_type'] ?? 'business',
                 'status' => WorkspaceStatus::Active->value,
+                'trial_ends_at' => $data['trial_ends_at'] ?? null,
             ]);
 
             $ownerRole = $this->roleService->createSystemRoles($workspace->id);

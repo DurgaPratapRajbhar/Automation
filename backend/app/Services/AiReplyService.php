@@ -16,6 +16,7 @@ class AiReplyService
         private ChannelService $channelService,
         private AiResponderInterface $responder,
         private OutboundMessageService $outbound,
+        private AiUsageService $usage,
     ) {}
 
     public function replyTo(int $messageId): void
@@ -30,6 +31,11 @@ class AiReplyService
         $conversation = $this->conversations->find($message->conversation_id);
 
         if (! $conversation) {
+            return;
+        }
+
+        // Trial over, shop suspended or today's limit used: stay quiet instead of paying for an answer
+        if (! $this->usage->allowed($message->workspace_id)) {
             return;
         }
 

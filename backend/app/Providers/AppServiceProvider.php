@@ -132,6 +132,8 @@ class AppServiceProvider extends ServiceProvider
         // Super admin passes every permission check; others go through Spatie roles
         Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
 
+        RateLimiter::for('signup', fn (Request $request) => Limit::perHour(5)->by('signup:'.$request->ip()));
+
         // Website chatbot: limit per API key (all visitors of one site share it), else per IP
         RateLimiter::for('public-ask', fn (Request $request) => Limit::perMinute(60)
             ->by('ask:'.($request->header('X-Api-Key') ?: $request->ip())));

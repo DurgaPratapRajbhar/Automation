@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1');
+    // Self-service: a few signups per hour per IP, so nobody can fill the system with fake shops
+    Route::post('/signup', [AuthController::class, 'signup'])->middleware('throttle:signup');
+    Route::post('/google', [AuthController::class, 'google'])->middleware('throttle:20,1');
+    Route::put('/password', [AuthController::class, 'changePassword'])->middleware(['jwt.auth', 'throttle:10,1']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('throttle:10,1');
     Route::get('/me', [AuthController::class, 'me'])->middleware('jwt.auth');
 });

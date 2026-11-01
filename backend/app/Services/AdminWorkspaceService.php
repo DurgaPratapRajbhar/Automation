@@ -59,7 +59,13 @@ class AdminWorkspaceService
     {
         $workspace = $this->findOrFail($workspaceId);
 
-        return $this->present($this->workspaceRepository->update($workspace, ['name' => $data['workspace_name']])->loadCount('users'));
+        $changes = ['name' => $data['workspace_name']];
+
+        if (array_key_exists('trial_ends_at', $data)) {
+            $changes['trial_ends_at'] = $data['trial_ends_at'];
+        }
+
+        return $this->present($this->workspaceRepository->update($workspace, $changes)->loadCount('users'));
     }
 
     // Admin sets a new password for a shop's user (forgotten password); the user is logged out everywhere
@@ -109,6 +115,7 @@ class AdminWorkspaceService
             'slug' => $workspace->slug,
             'type' => $workspace->type,
             'status' => $workspace->status,
+            'trial_ends_at' => $workspace->trial_ends_at,
             'members_count' => $workspace->users_count,
             'created_at' => $workspace->created_at,
         ];

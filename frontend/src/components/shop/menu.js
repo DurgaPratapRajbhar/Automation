@@ -9,4 +9,5 @@ export const MENU = [
   { label: 'Members', href: '/members', permission: 'members.view' },
   { label: 'Roles', href: '/roles', permission: 'roles.view' },
   { label: 'Shop profile', href: '/settings/profile', permission: 'workspace.view' },
+  { label: 'Password', href: '/settings/password', permission: null },
 ];

@@ -28,6 +28,8 @@ class WorkspaceAccessController extends Controller
                     'name' => $workspace->name,
                     'slug' => $workspace->slug,
                     'type' => $workspace->type,
+                    'trial_ends_at' => $workspace->trial_ends_at,
+                    'trial_days_left' => $workspace->trialDaysLeft(),
                 ],
                 'role' => $role ? [
                     'id' => $role->id,
@@ -36,6 +38,8 @@ class WorkspaceAccessController extends Controller
                     'is_owner' => $role->isOwner(),
                 ] : null,
                 'is_super_admin' => $user->isSuperAdmin(),
+                // false for an account made with Google that has not set a password yet
+                'has_password' => $user->has_password,
                 'permissions' => $this->permissionService->permissionsOf($user, $role),
             ],
         ]);

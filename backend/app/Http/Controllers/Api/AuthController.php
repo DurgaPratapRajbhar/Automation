@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ChangePasswordRequest;
+use App\Http\Requests\Auth\GoogleLoginRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RefreshTokenRequest;
+use App\Http\Requests\Auth\SignupRequest;
 use App\Services\AuthService;
+use App\Services\SignupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -13,7 +17,8 @@ use RuntimeException;
 class AuthController extends Controller
 {
     public function __construct(
-        private AuthService $authService
+        private AuthService $authService,
+        private SignupService $signupService
     ) {}
 
     public function login(LoginRequest $request): JsonResponse
@@ -28,6 +33,33 @@ class AuthController extends Controller
             'message' => 'Login successful.',
             'data' => $result,
         ]);
+    }
+
+    // A shopkeeper makes their own account and shop (free trial)
+    public function signup(SignupRequest $request): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => __('auth.signed_up'),
+            'data' => $this->signupService->register($request->validated()),
+        ], 201);
+    }
+
+    // "Sign in with Google": signs in, or signs up a new shopkeeper
+    public function google(GoogleLoginRequest $request): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => $this->signupService->withGoogle($request->validated('credential')),
+        ]);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $this->authService->changePassword($request->user(), $request->validated('current_password'), $request->validated('password'));
+
+        return response()->json(['success' => true, 'message' => __('auth.password_changed')]);
     }
 
     // Super admin panel login: only super admin accounts get in

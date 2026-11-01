@@ -57,7 +57,7 @@ class WorkspaceApiKeyService
 
         $workspace = $this->workspaceRepository->findByApiKeyHash($this->hash($key));
 
-        return $workspace?->status === WorkspaceStatus::Active->value ? $workspace : null;
+        return $workspace?->status === WorkspaceStatus::Active->value && ! $workspace->trialExpired() ? $workspace : null;
     }
 
     private function hash(string $key): string

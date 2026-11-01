@@ -57,6 +57,7 @@ services:
         - "3000:3000"
       environment:
         BACKEND_URL: http://backend:8000
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
         # File watching on a Windows bind mount
         WATCHPACK_POLLING: "true"
         NEXT_TELEMETRY_DISABLED: "1"

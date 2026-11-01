@@ -26,6 +26,9 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env
+    environment:
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      TRIAL_DAYS: ${TRIAL_DAYS:-7}
     command: sh -c "php artisan config:cache && php artisan route:cache && php-fpm"
     volumes:
       - backend_storage:/var/www/html/storage
@@ -65,6 +68,8 @@ services:
     restart: unless-stopped
     environment:
       BACKEND_URL: http://backend-web
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      TRIAL_DAYS: ${TRIAL_DAYS:-7}
     depends_on:
       - backend-web
     networks:

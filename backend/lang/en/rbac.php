@@ -2,6 +2,7 @@
 
 return [
     'owner_role_name' => 'Owner',
+    'trial_ended' => 'Your free trial has ended. Message ScriptDP on WhatsApp :phone to continue.',
     'cannot_grant' => 'You cannot grant permissions you do not have: :permissions',
     'owner_only' => 'Only an owner can manage the owner role.',
     'role_too_powerful' => 'You cannot manage a role that has more permissions than yours.',

@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    'google' => [
+        // Web client ID for "Sign in with Google" (Google Cloud > APIs & Services > Credentials)
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
     'meta' => [
         'graph_url' => env(
             'META_GRAPH_URL',

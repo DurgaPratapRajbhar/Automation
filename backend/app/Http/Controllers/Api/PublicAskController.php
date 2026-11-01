@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ai\AskRequest;
+use App\Services\AiUsageService;
 use App\Services\Contracts\AiResponderInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -14,12 +15,17 @@ use Illuminate\Http\JsonResponse;
 class PublicAskController extends Controller
 {
     public function __construct(
-        private AiResponderInterface $aiResponder
+        private AiResponderInterface $aiResponder,
+        private AiUsageService $usage
     ) {}
 
     public function __invoke(AskRequest $request): JsonResponse
     {
         $workspace = $request->attributes->get('workspace');
+
+        if (! $this->usage->allowed($workspace->id)) {
+            return response()->json(['success' => false, 'message' => __('api_key.limit_reached')], 429);
+        }
 
         $answer = $this->aiResponder->answer($workspace->id, $request->validated('question'), $workspace->reply_style);
 

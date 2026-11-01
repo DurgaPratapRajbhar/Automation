@@ -22,7 +22,24 @@ class Workspace extends Model
         'api_key_hash',
         'api_key_hint',
         'reply_style',
+        'trial_ends_at',
     ];
+
+    protected function casts(): array
+    {
+        return ['trial_ends_at' => 'datetime'];
+    }
+
+    public function trialExpired(): bool
+    {
+        return $this->trial_ends_at !== null && $this->trial_ends_at->isPast();
+    }
+
+    // null when the shop is not on a trial
+    public function trialDaysLeft(): ?int
+    {
+        return $this->trial_ends_at === null ? null : max(0, (int) ceil(now()->diffInDays($this->trial_ends_at, false)));
+    }
 
     protected $hidden = [
         'api_key_hash',
