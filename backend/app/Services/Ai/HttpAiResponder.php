@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Log;
 
 class HttpAiResponder implements AiResponderInterface
 {
-    public function answer(int $workspaceId, string $question): ?string
+    public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
     {
         try {
             $response = Http::timeout(180)
                 ->post(rtrim(config('services.ai.url'), '/').'/ask', [
                     'workspace_id' => $workspaceId,
                     'question' => $question,
+                    'reply_style' => $replyStyle,
                 ])
                 ->throw();
 

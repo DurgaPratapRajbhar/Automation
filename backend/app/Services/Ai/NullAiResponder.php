@@ -7,7 +7,7 @@ use App\Services\Contracts\AiResponderInterface;
 // Tests me koi network call nahi
 class NullAiResponder implements AiResponderInterface
 {
-    public function answer(int $workspaceId, string $question): ?string
+    public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
     {
         return null;
     }

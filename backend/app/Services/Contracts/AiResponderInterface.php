@@ -6,5 +6,5 @@ namespace App\Services\Contracts;
 interface AiResponderInterface
 {
     // Jawaab, ya null agar AI jawaab na de paye
-    public function answer(int $workspaceId, string $question): ?string;
+    public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string;
 }

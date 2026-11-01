@@ -3,6 +3,13 @@ from app.chunking import chunk_text
 from app.embeddings import embed
 
 
+# File padhne layak na ho to source 'failed' dikhe (pending/ready nahi)
+def mark_failed(source_id: int) -> None:
+    with db.connect() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE knowledge_sources SET status = 'failed', updated_at = now() WHERE id = %s", (source_id,))
+        conn.commit()
+
+
 # Diye gaye text ko tukde -> embed -> store. Purane chunks hata ke naye. Chunk count lautaata hai.
 async def learn(source_id: int, workspace_id: int, text: str) -> int:
     chunks = chunk_text(text)

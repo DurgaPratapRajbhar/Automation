@@ -7,6 +7,11 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 
+const REPLY_STYLES = [
+  { value: 'auto', label: 'Customer ki bhasha me' },
+  { value: 'hinglish', label: 'Hinglish (Roman Hindi)' },
+];
+
 const GST_STATUSES = [
   { value: 'unregistered', label: 'Not registered' },
   { value: 'composition', label: 'Composition' },
@@ -33,6 +38,8 @@ export default function ProfileForm({ profile, canEdit }) {
           <Input label="State code" name="state_code" defaultValue={values.state_code} error={errors.state_code} placeholder="09" />
           <Input label="UPI ID" name="upi_id" defaultValue={values.upi_id} error={errors.upi_id} placeholder="shop@okaxis" />
         </div>
+
+        <Select label="Website chatbot ki bhasha" name="reply_style" options={REPLY_STYLES} defaultValue={values.reply_style} error={errors.reply_style} />
       </fieldset>
 
       {canEdit && <Button pending={pending}>Save</Button>}

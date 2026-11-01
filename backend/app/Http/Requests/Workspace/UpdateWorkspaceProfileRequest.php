@@ -26,6 +26,8 @@ class UpdateWorkspaceProfileRequest extends FormRequest
             'gst_status' => ['sometimes', Rule::enum(GstStatus::class)],
             'gstin' => ['sometimes', 'nullable', new Gstin],
             'upi_id' => ['sometimes', 'nullable', new UpiId],
+            // Language of the website chatbot's replies (auto = same as the customer's)
+            'reply_style' => ['sometimes', 'nullable', Rule::in(['auto', 'hinglish'])],
         ];
     }
 }

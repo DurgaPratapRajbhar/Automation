@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Knowledge;
 
+use App\Rules\ReadableText;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateKnowledgeSourceRequest extends FormRequest
@@ -15,7 +16,7 @@ class UpdateKnowledgeSourceRequest extends FormRequest
     {
         return [
             'title' => ['sometimes', 'string', 'max:150'],
-            'content' => ['sometimes', 'string', 'max:20000'],
+            'content' => ['sometimes', 'string', 'max:20000', new ReadableText],
         ];
     }
 }

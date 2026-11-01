@@ -18,7 +18,7 @@ function fakeAi(?string $answer = 'Haan, delivery free hai.'): void
     {
         public function __construct(private ?string $reply) {}
 
-        public function answer(int $workspaceId, string $question): ?string
+        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
         {
             return $this->reply === null ? null : "[{$workspaceId}] {$this->reply}";
         }
@@ -105,4 +105,17 @@ test('a question is required and an AI failure is reported', function () {
     $this->postJson('/api/v1/ask', ['question' => 'hi'], ['X-Api-Key' => $key])
         ->assertStatus(503)
         ->assertJsonPath('message', 'The assistant could not answer right now. Please try again.');
+});
+
+test('the reply language is saved on the shop profile and only accepts known styles', function () {
+    $owner = registerOwner($this);
+    $headers = headersFor($owner['token'], $owner['workspace_id']);
+
+    $this->putJson('/api/workspace/profile', ['reply_style' => 'hinglish'], $headers)
+        ->assertOk()
+        ->assertJsonPath('data.reply_style', 'hinglish');
+
+    $this->putJson('/api/workspace/profile', ['reply_style' => 'french'], $headers)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('reply_style');
 });

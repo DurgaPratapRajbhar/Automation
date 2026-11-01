@@ -19,10 +19,9 @@ class PublicAskController extends Controller
 
     public function __invoke(AskRequest $request): JsonResponse
     {
-        $answer = $this->aiResponder->answer(
-            $request->attributes->get('workspace')->id,
-            $request->validated('question')
-        );
+        $workspace = $request->attributes->get('workspace');
+
+        $answer = $this->aiResponder->answer($workspace->id, $request->validated('question'), $workspace->reply_style);
 
         if ($answer === null) {
             return response()->json(['success' => false, 'message' => __('api_key.ai_unavailable')], 503);

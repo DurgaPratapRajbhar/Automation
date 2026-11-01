@@ -55,7 +55,7 @@ test('AI replies to a customer message, saves it to the inbox and sends it on Wh
     // ai-service ka jawaab fake karo
     $this->app->bind(AiResponderInterface::class, fn () => new class implements AiResponderInterface
     {
-        public function answer(int $workspaceId, string $question): ?string
+        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
         {
             return 'Haan, hum home delivery karte hain.';
         }
@@ -95,7 +95,7 @@ test('outbound is marked failed when WhatsApp sending fails', function () {
 
     $this->app->bind(AiResponderInterface::class, fn () => new class implements AiResponderInterface
     {
-        public function answer(int $workspaceId, string $question): ?string
+        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
         {
             return 'Reply text';
         }

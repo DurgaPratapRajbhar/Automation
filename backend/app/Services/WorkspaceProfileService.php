@@ -53,6 +53,7 @@ class WorkspaceProfileService
             'gst_status' => $workspace->gst_status,
             'gstin' => $workspace->gstin,
             'upi_id' => $workspace->upi_id,
+            'reply_style' => $workspace->reply_style,
         ];
     }
 }

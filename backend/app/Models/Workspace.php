@@ -21,6 +21,7 @@ class Workspace extends Model
         'upi_id',
         'api_key_hash',
         'api_key_hint',
+        'reply_style',
     ];
 
     protected $hidden = [

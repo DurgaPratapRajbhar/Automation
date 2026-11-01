@@ -18,6 +18,11 @@ ANSWER_SYSTEM = (
     "Keep replies short and friendly, and reply in the same language the customer used."
 )
 
+# Shop ne Hinglish chuna ho to jawab Roman letters me Hindi me hoga
+HINGLISH_RULE = (
+    " Always reply in Hinglish: Hindi written in English (Roman) letters, the way people talk on WhatsApp."
+)
+
 REWRITE_SYSTEM = (
     "Rewrite the customer's question into a short search query (keywords) "
     "to look up a shop's knowledge base. Reply with only the query."
@@ -28,6 +33,7 @@ FALLBACK = "Sorry, I'm not sure about that. Let me connect you to the shop so th
 
 class State(TypedDict):
     workspace_id: int
+    reply_style: str
     question: str
     query: str
     docs: list
@@ -60,7 +66,8 @@ async def rewrite(state: State) -> dict:
 
 async def generate(state: State) -> dict:
     user = f"Shop information:\n{context_of(state['docs'])}\n\nCustomer question: {state['question']}"
-    return {"answer": await chat(ANSWER_SYSTEM, user)}
+    system = ANSWER_SYSTEM + (HINGLISH_RULE if state["reply_style"] == "hinglish" else "")
+    return {"answer": await chat(system, user)}
 
 
 def fallback(state: State) -> dict:
@@ -105,9 +112,10 @@ def build_agent():
 agent = build_agent()
 
 
-async def answer_question(workspace_id: int, question: str) -> dict:
+async def answer_question(workspace_id: int, question: str, reply_style: str = "auto") -> dict:
     result = await agent.ainvoke({
         "workspace_id": workspace_id,
+        "reply_style": reply_style,
         "question": question,
         "query": question,
         "docs": [],
