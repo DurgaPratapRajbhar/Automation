@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { redirectTo } from '@/lib/redirect';
 
 // Revokes the refresh token on the server, clears one area's cookies and goes to its login page
 export async function logout(request, names, loginPath) {
@@ -12,7 +12,7 @@ export async function logout(request, names, loginPath) {
     }).catch(() => {});
   }
 
-  const response = NextResponse.redirect(new URL(loginPath, request.url));
+  const response = redirectTo(loginPath);
   Object.values(names).forEach((name) => response.cookies.delete(name));
 
   return response;
