@@ -1,0 +1,15 @@
+# Local check of the server setup (no SSL): the browser sends *.localhost to this PC by itself.
+#   docker run -d --rm --name caddy-local --network web -p 80:80 -v ./Caddyfile.local:/etc/caddy/Caddyfile:ro caddy:2-alpine
+# then open http://app.localhost, http://scriptdp.localhost, http://solar.localhost
+
+http://app.localhost {
+	reverse_proxy app-frontend:3000
+}
+
+http://scriptdp.localhost {
+	reverse_proxy blog-frontend:3000
+}
+
+http://solar.localhost {
+	reverse_proxy solar-frontend:3000
+}

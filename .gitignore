@@ -6,3 +6,6 @@
 
 # Postman environment with real secrets/tokens — local only
 docs/postman/*.local.postman_environment.json
+
+# Local run of the production stack (test values)
+/docker-compose.prod.local.yml

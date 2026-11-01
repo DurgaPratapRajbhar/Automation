@@ -57,6 +57,9 @@ docker compose -f docker-compose.prod.yml exec backend php artisan tinker --exec
 docker compose -f docker-compose.prod.yml exec backend php artisan app:make-super-admin ADMIN_EMAIL
 ```
 
+`queue` aur `ai-service` migrate se pehle tables na milne par restart hote rehte hain; migrate ke baad
+apne aap chal padte hain.
+
 Container ke andar `.env` file nahi hoti (values `env_file` se aati hain), isliye `backend/.env` badalne ke baad
 `docker compose -f docker-compose.prod.yml up -d` dobara chalao.
 
