@@ -13,6 +13,8 @@ interface WorkspaceRepositoryInterface
 
     public function findById(int $workspaceId): ?Workspace;
 
+    public function findByApiKeyHash(string $hash): ?Workspace;
+
     // Active workspaces of a user, with the user's role in each
     public function getForUser(int $userId): Collection;
 

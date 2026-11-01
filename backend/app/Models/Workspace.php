@@ -19,6 +19,12 @@ class Workspace extends Model
         'gst_status',
         'gstin',
         'upi_id',
+        'api_key_hash',
+        'api_key_hint',
+    ];
+
+    protected $hidden = [
+        'api_key_hash',
     ];
 
     public function users(): BelongsToMany

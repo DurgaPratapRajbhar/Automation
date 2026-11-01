@@ -24,6 +24,11 @@ class WorkspaceRepository implements WorkspaceRepositoryInterface
         return Workspace::find($workspaceId);
     }
 
+    public function findByApiKeyHash(string $hash): ?Workspace
+    {
+        return Workspace::where('api_key_hash', $hash)->first();
+    }
+
     public function getForUser(int $userId): Collection
     {
         $roles = (new Role)->getTable();

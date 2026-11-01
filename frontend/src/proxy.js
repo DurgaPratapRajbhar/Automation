@@ -52,6 +52,6 @@ export async function proxy(request) {
 
 export const config = {
   // Pages only, not static files or the two logout routes
-  // api/webhooks = Meta calls, no login; passed to the backend by next.config rewrites
-  matcher: ['/((?!_next|favicon.ico|logout|admin/logout|api/webhooks).*)'],
+  // api/webhooks = Meta calls, api/v1 = shop websites (API key); no login, passed to the backend by next.config rewrites
+  matcher: ['/((?!_next|favicon.ico|logout|admin/logout|api/webhooks|api/v1).*)'],
 };

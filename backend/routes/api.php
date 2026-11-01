@@ -11,10 +11,12 @@ use App\Http\Controllers\Api\EmbeddedSignupController;
 use App\Http\Controllers\Api\KnowledgeSourceController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\PublicAskController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\WhatsAppTemplateController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\WorkspaceAccessController;
+use App\Http\Controllers\Api\WorkspaceApiKeyController;
 use App\Http\Controllers\Api\WorkspaceProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,13 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
 
         Route::get('/workspace/profile', [WorkspaceProfileController::class, 'show'])->name('workspace.show');
         Route::put('/workspace/profile', [WorkspaceProfileController::class, 'update'])->name('workspace.update');
+
+        // Key for the shop's own website chatbot (POST /api/v1/ask)
+        Route::get('/workspace/api-key', [WorkspaceApiKeyController::class, 'show'])->name('api-key.show');
+        Route::post('/workspace/api-key', [WorkspaceApiKeyController::class, 'store'])
+            ->middleware('throttle:5,1')
+            ->name('api-key.store');
+        Route::delete('/workspace/api-key', [WorkspaceApiKeyController::class, 'destroy'])->name('api-key.destroy');
 
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
 
@@ -120,6 +129,9 @@ Route::prefix('admin')->middleware(['jwt.auth', 'super.admin'])->whereNumber(['w
     Route::put('/role-templates/{templateId}', [AdminRoleTemplateController::class, 'update']);
     Route::delete('/role-templates/{templateId}', [AdminRoleTemplateController::class, 'destroy']);
 });
+
+// Shop's own website asks the same AI; X-Api-Key picks the workspace
+Route::post('/v1/ask', PublicAskController::class)->middleware(['throttle:public-ask', 'api.key']);
 
 Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify']);
 Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive']);

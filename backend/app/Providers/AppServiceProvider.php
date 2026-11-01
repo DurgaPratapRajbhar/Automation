@@ -29,7 +29,10 @@ use App\Repositories\Eloquent\RoleRepository;
 use App\Repositories\Eloquent\RoleTemplateRepository;
 use App\Repositories\Eloquent\UserRepository;
 use App\Repositories\Eloquent\WorkspaceRepository;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -128,5 +131,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Super admin passes every permission check; others go through Spatie roles
         Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
+
+        // Website chatbot: limit per API key (all visitors of one site share it), else per IP
+        RateLimiter::for('public-ask', fn (Request $request) => Limit::perMinute(60)
+            ->by('ask:'.($request->header('X-Api-Key') ?: $request->ip())));
     }
 }

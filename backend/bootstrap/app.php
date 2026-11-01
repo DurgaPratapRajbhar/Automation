@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\BusinessRuleException;
+use App\Http\Middleware\AuthenticateApiKey;
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\JwtAuthMiddleware;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'workspace' => ResolveWorkspace::class,
             'permission' => CheckPermission::class,
             'super.admin' => EnsureSuperAdmin::class,
+            'api.key' => AuthenticateApiKey::class,
         ]);
 
     })
