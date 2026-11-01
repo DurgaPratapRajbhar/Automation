@@ -23,4 +23,10 @@ class UserRepository implements UserRepositoryInterface
     {
         return User::create($data);
     }
+
+    // The model hashes the password
+    public function updatePassword(User $user, string $password): void
+    {
+        $user->update(['password' => $password]);
+    }
 }

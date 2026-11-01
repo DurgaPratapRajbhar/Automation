@@ -11,4 +11,7 @@ interface RefreshTokenRepositoryInterface
     public function findByTokenHash(string $tokenHash): ?RefreshToken;
 
     public function revoke(RefreshToken $refreshToken): void;
+
+    // Logs the user out everywhere (used when an admin sets a new password)
+    public function revokeAllForUser(int $userId): void;
 }

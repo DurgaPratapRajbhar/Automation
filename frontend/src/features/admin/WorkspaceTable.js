@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import ActionButton from '@/components/ui/ActionButton';
+import { buttonClass } from '@/components/ui/Button';
 import { setWorkspaceStatus } from '@/features/admin/actions';
 
 export default function WorkspaceTable({ workspaces }) {
@@ -28,7 +30,8 @@ export default function WorkspaceTable({ workspaces }) {
                 <td className="px-4 py-3">
                   <span className={active ? 'text-green-700' : 'text-red-700'}>{workspace.status}</span>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="space-x-2 px-4 py-3 text-right">
+                  <Link href={`/admin/workspaces/${workspace.id}`} className={buttonClass('secondary')}>Edit</Link>
                   <ActionButton
                     action={setWorkspaceStatus.bind(null, workspace.id, active ? 'suspended' : 'active')}
                     label={active ? 'Suspend' : 'Activate'}

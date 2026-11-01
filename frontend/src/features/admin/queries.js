@@ -15,6 +15,8 @@ export function getWorkspaces({ search, cursor }) {
   return adminBackend(`admin/workspaces?${params}`);
 }
 
+export const getWorkspace = (workspaceId) => adminBackend(`admin/workspaces/${workspaceId}`);
+
 export const getRoleTemplates = () => adminBackend('admin/role-templates');
 
 export const getAdminPermissionTree = () => adminBackend('admin/permissions');

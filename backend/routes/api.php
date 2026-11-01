@@ -115,9 +115,13 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
 Route::post('/admin/auth/login', [AuthController::class, 'adminLogin'])->middleware('throttle:5,1');
 
 // Platform super admin only
-Route::prefix('admin')->middleware(['jwt.auth', 'super.admin'])->whereNumber(['workspaceId', 'templateId'])->group(function () {
+Route::prefix('admin')->middleware(['jwt.auth', 'super.admin'])->whereNumber(['workspaceId', 'templateId', 'userId'])->group(function () {
     Route::get('/workspaces', [AdminWorkspaceController::class, 'index']);
     Route::post('/workspaces', [AdminWorkspaceController::class, 'store']);
+    Route::get('/workspaces/{workspaceId}', [AdminWorkspaceController::class, 'show']);
+    Route::put('/workspaces/{workspaceId}', [AdminWorkspaceController::class, 'update']);
+    Route::put('/workspaces/{workspaceId}/members/{userId}/password', [AdminWorkspaceController::class, 'resetMemberPassword'])
+        ->middleware('throttle:10,1');
     Route::patch('/workspaces/{workspaceId}/status', [AdminWorkspaceController::class, 'updateStatus']);
 
     // Permission tree for the role template form

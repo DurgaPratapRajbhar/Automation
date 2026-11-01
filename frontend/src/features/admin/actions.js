@@ -20,6 +20,29 @@ export async function createWorkspace(previousState, formData) {
   redirect('/admin/workspaces');
 }
 
+// Rename a shop
+export async function updateWorkspace(workspaceId, previousState, formData) {
+  const values = formValues(formData);
+  const { ok, data } = await backend(`admin/workspaces/${workspaceId}`, { method: 'PUT', body: values, admin: true });
+
+  if (!ok) return formError(data, values);
+
+  revalidatePath('/admin/workspaces');
+  revalidatePath(`/admin/workspaces/${workspaceId}`);
+
+  return { message: data.message, success: true, values };
+}
+
+// New password for one user of a shop (forgotten password). The passwords are never sent back to the form.
+export async function resetMemberPassword(workspaceId, userId, previousState, formData) {
+  const values = formValues(formData);
+  const { ok, data } = await backend(`admin/workspaces/${workspaceId}/members/${userId}/password`, { method: 'PUT', body: values, admin: true });
+
+  if (!ok) return formError(data);
+
+  return { message: data.message, success: true };
+}
+
 export async function setWorkspaceStatus(workspaceId, status) {
   const { ok, data } = await backend(`admin/workspaces/${workspaceId}/status`, { method: 'PATCH', body: { status }, admin: true });
 

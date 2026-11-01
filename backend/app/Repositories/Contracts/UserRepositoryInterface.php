@@ -11,4 +11,6 @@ interface UserRepositoryInterface
     public function findById(int $id): ?User;
 
     public function create(array $data): User;
+
+    public function updatePassword(User $user, string $password): void;
 }
