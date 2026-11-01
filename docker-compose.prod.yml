@@ -38,7 +38,9 @@ services:
 
   # AI replies and other queued jobs
   queue:
+    # Same image the "backend" service builds; never try to pull it from a registry
     image: scriptdp-backend
+    pull_policy: never
     restart: unless-stopped
     user: www-data
     env_file:
