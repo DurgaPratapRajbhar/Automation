@@ -3,6 +3,9 @@ import GoogleButton from '@/features/auth/GoogleButton';
 import LoginForm from '@/features/auth/LoginForm';
 import { login } from '@/features/auth/actions';
 
+// Read the Google client id at request time, not once at build time
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
 
