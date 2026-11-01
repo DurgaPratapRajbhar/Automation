@@ -29,6 +29,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.key' => AuthenticateApiKey::class,
         ]);
 
+        // Requests come through our own frontend container (private Docker network), which passes on
+        // the visitor's IP. Trust that header only from private addresses, never from the internet,
+        // so rate limits count each visitor and nobody can fake an IP from outside.
+        $middleware->trustProxies(
+            at: ['127.0.0.1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'],
+            headers: Request::HEADER_X_FORWARDED_FOR,
+        );
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
