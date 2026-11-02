@@ -1,6 +1,7 @@
 import httpx
 
 from app.config import settings
+from app.retry import post_with_retry
 
 
 # Provider .env ke AI_PROVIDER se chunta hai: local me Ollama, production me Gemini.
@@ -30,7 +31,8 @@ async def _ollama_chat(system: str, user: str) -> str:
 
 async def _gemini_chat(system: str, user: str) -> str:
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
+        response = await post_with_retry(
+            client,
             f"{settings.gemini_url}/models/{settings.gemini_chat_model}:generateContent",
             headers={"x-goog-api-key": settings.gemini_api_key},
             json={

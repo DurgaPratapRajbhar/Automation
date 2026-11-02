@@ -1,6 +1,7 @@
 import httpx
 
 from app.config import settings
+from app.retry import post_with_retry
 
 
 # Provider .env ke AI_PROVIDER se chunta hai. Dono embed_dim (768) size ka vector dete hain.
@@ -24,7 +25,8 @@ async def _ollama_embed(text: str) -> list[float]:
 
 async def _gemini_embed(text: str) -> list[float]:
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
+        response = await post_with_retry(
+            client,
             f"{settings.gemini_url}/models/{settings.gemini_embed_model}:embedContent",
             headers={"x-goog-api-key": settings.gemini_api_key},
             json={
