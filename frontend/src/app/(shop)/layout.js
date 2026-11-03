@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/shop/Sidebar';
 import Icon from '@/components/ui/Icon';
+import InstallApp from '@/components/ui/InstallApp';
 import { CONTACT_PHONE } from '@/lib/contact';
 import UserMenu from '@/components/shop/UserMenu';
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
@@ -33,6 +34,7 @@ export default async function AppLayout({ children }) {
       <div className="min-w-0 flex-1">
         {/* Computer/tablet: profile menu at the top right. On a phone it sits in the top bar instead. */}
         <header className="hidden items-center justify-end gap-3 border-b border-slate-200 bg-white px-6 py-3 md:flex">
+          <InstallApp />
           <Link
             href="/features"
             className="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 shadow-sm ring-1 ring-slate-200 transition hover:ring-2 hover:ring-emerald-300"

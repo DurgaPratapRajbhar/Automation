@@ -51,7 +51,7 @@ export async function proxy(request) {
 }
 
 export const config = {
-  // Pages only, not static files (logo, icons) or the two logout routes
+  // Pages only, not static files (logo, icons, the app manifest and service worker the phone fetches without a login) or the two logout routes
   // api/webhooks = Meta calls, api/v1 = shop websites (API key); no login, passed to the backend by next.config rewrites
-  matcher: ['/((?!_next|favicon.ico|icon.png|brand/|logout|admin/logout|api/webhooks|api/v1).*)'],
+  matcher: ['/((?!_next|favicon.ico|icon.png|brand/|icons/|manifest.webmanifest|sw.js|logout|admin/logout|api/webhooks|api/v1).*)'],
 };

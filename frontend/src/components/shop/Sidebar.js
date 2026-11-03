@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MENU } from '@/components/shop/menu';
 import UserMenu from '@/components/shop/UserMenu';
 import Icon from '@/components/ui/Icon';
+import InstallApp from '@/components/ui/InstallApp';
 import NavLink from '@/components/ui/NavLink';
 
 // Left menu on a computer or tablet. On a phone it is a top bar with the profile button and a "Menu" button that opens the links.
@@ -60,6 +61,11 @@ export default function Sidebar({ access }) {
           <Icon name="sparkle" size={19} />
           Features
         </NavLink>
+
+        {/* Phone: the button shows itself only when the browser can install the app */}
+        <div className="md:hidden">
+          <InstallApp className="w-full justify-center py-2.5" />
+        </div>
       </nav>
     </aside>
   );

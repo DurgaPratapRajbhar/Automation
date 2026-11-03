@@ -64,6 +64,12 @@ const PATHS = {
     </>
   ),
   chevron: <path d="m6 9 6 6 6-6" />,
+  phone: (
+    <>
+      <rect x="7" y="2" width="10" height="20" rx="2" />
+      <path d="M11 18h2" />
+    </>
+  ),
   sparkle: (
     <>
       <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
