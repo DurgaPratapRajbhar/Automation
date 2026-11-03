@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
+import InfoTip from '@/components/ui/InfoTip';
 import { connectWhatsApp } from '@/features/shop/whatsapp/actions';
 
 const SDK_ID = 'facebook-jssdk';
@@ -112,9 +113,35 @@ export default function ConnectWhatsAppButton({ signup }) {
     <div className="space-y-3">
       <Alert message={state.message} type="success" />
       <Alert message={state.error} />
-      <Button type="button" onClick={start} disabled={!ready || pending} pending={pending}>
-        {ready ? 'Connect WhatsApp' : 'Loading…'}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="button" onClick={start} disabled={!ready || pending} pending={pending}>
+          {ready ? 'Connect WhatsApp' : 'Loading…'}
+        </Button>
+
+        <InfoTip label="Which number can I connect?">
+          <p className="font-semibold text-red-700">Which number can I connect?</p>
+          <p>
+            <strong className="text-emerald-700">Works:</strong> a new number that is not on any WhatsApp yet.
+          </p>
+          <p>
+            <strong className="text-red-700">Does not work:</strong> a number that is already on personal WhatsApp or on the WhatsApp Business app.
+          </p>
+          <p className="text-slate-600">
+            To use that same number, you must first delete its WhatsApp account (its old chats will be lost). Or use a new SIM for the shop.
+          </p>
+          <hr className="border-slate-100" />
+          <p className="font-semibold text-red-700">Kaun sa number chalega?</p>
+          <p>
+            <strong className="text-emerald-700">Chalega:</strong> naya number jo abhi kisi WhatsApp par nahi hai.
+          </p>
+          <p>
+            <strong className="text-red-700">Nahi chalega:</strong> jo number abhi personal WhatsApp ya WhatsApp Business app me chal raha hai.
+          </p>
+          <p className="text-slate-600">
+            Wahi number chahiye to pehle us number ka WhatsApp delete karein (purani chats jayengi), ya dukaan ke liye nayi SIM lein.
+          </p>
+        </InfoTip>
+      </div>
     </div>
   );
 }
