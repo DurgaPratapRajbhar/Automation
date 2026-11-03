@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\WorkspaceModule;
 use App\Services\WorkspacePermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,7 +41,13 @@ class WorkspaceAccessController extends Controller
                 'is_super_admin' => $user->isSuperAdmin(),
                 // false for an account made with Google that has not set a password yet
                 'has_password' => $user->has_password,
-                'permissions' => $this->permissionService->permissionsOf($user, $role),
+                // Modules switched on for this shop, and every module there is (the app shows the others as "ask ScriptDP")
+                'modules' => $user->isSuperAdmin() ? WorkspaceModule::values() : $workspace->enabledModules(),
+                'available_modules' => WorkspaceModule::values(),
+                'permissions' => $this->permissionService->permissionsInEnabledModules(
+                    $this->permissionService->permissionsOf($user, $role),
+                    $user->isSuperAdmin() ? null : $workspace
+                ),
             ],
         ]);
     }

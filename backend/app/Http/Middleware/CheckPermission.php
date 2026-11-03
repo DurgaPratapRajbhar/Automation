@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\WorkspaceModule;
 use App\Services\RoutePermissionResolver;
 use Closure;
 use Illuminate\Http\Request;
@@ -27,6 +28,13 @@ class CheckPermission
 
         if (! $permission || ! $request->user()->can($permission)) {
             return response()->json(['success' => false, 'message' => __('rbac.forbidden')], 403);
+        }
+
+        // A part of the app the super admin has not switched on for this shop (the super admin is never blocked)
+        $module = WorkspaceModule::forPermission($permission);
+
+        if ($module && ! $request->user()->isSuperAdmin() && ! $request->attributes->get('workspace')->hasModule($module)) {
+            return response()->json(['success' => false, 'message' => __('rbac.module_off'), 'module' => $module->value], 403);
         }
 
         return $next($request);

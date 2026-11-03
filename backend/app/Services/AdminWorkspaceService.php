@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\WorkspaceModule;
 use App\Enums\WorkspaceStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Workspace;
@@ -65,6 +66,10 @@ class AdminWorkspaceService
             $changes['trial_ends_at'] = $data['trial_ends_at'];
         }
 
+        if (array_key_exists('modules', $data)) {
+            $changes['modules'] = array_values(array_unique($data['modules']));
+        }
+
         return $this->present($this->workspaceRepository->update($workspace, $changes)->loadCount('users'));
     }
 
@@ -116,6 +121,8 @@ class AdminWorkspaceService
             'type' => $workspace->type,
             'status' => $workspace->status,
             'trial_ends_at' => $workspace->trial_ends_at,
+            'modules' => $workspace->enabledModules(),
+            'available_modules' => WorkspaceModule::values(),
             'members_count' => $workspace->users_count,
             'created_at' => $workspace->created_at,
         ];

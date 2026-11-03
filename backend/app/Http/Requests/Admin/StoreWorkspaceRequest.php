@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\WorkspaceModule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreWorkspaceRequest extends FormRequest
 {
@@ -20,6 +22,9 @@ class StoreWorkspaceRequest extends FormRequest
             // Needed only when the owner is a new user
             'owner_name' => ['nullable', 'string', 'max:255'],
             'owner_password' => ['nullable', 'string', 'min:8'],
+            // Leave it out for every module
+            'modules' => ['sometimes', 'array'],
+            'modules.*' => [Rule::enum(WorkspaceModule::class)],
         ];
     }
 }

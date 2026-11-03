@@ -50,6 +50,8 @@ class WorkspaceSetupService
                 'type' => $data['workspace_type'] ?? 'business',
                 'status' => WorkspaceStatus::Active->value,
                 'trial_ends_at' => $data['trial_ends_at'] ?? null,
+                // null = every module (the admin-made shop of before); signup passes the starter set
+                'modules' => $data['modules'] ?? null,
             ]);
 
             $ownerRole = $this->roleService->createSystemRoles($workspace->id);

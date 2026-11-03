@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\WorkspaceModule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,12 +23,24 @@ class Workspace extends Model
         'api_key_hash',
         'api_key_hint',
         'reply_style',
+        'modules',
         'trial_ends_at',
     ];
 
     protected function casts(): array
     {
-        return ['trial_ends_at' => 'datetime'];
+        return ['trial_ends_at' => 'datetime', 'modules' => 'array'];
+    }
+
+    // Modules switched on for this shop; null in the database means every module
+    public function enabledModules(): array
+    {
+        return $this->modules ?? WorkspaceModule::values();
+    }
+
+    public function hasModule(WorkspaceModule $module): bool
+    {
+        return in_array($module->value, $this->enabledModules(), true);
     }
 
     public function trialExpired(): bool

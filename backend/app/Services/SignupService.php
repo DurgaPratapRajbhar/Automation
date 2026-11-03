@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\WorkspaceModule;
 use App\Repositories\Contracts\RefreshTokenRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Str;
@@ -30,6 +31,7 @@ class SignupService
             'owner_name' => $data['name'],
             'owner_password' => $data['password'],
             'trial_ends_at' => $this->trialEnd(),
+            'modules' => WorkspaceModule::values(WorkspaceModule::starter()),
         ]);
 
         return $this->auth->issueSession($this->users->findByEmail($data['email']));
@@ -69,6 +71,7 @@ class SignupService
             'workspace_name' => __('auth.default_shop_name', ['name' => $person['name']]),
             'owner_email' => $person['email'],
             'trial_ends_at' => $this->trialEnd(),
+            'modules' => WorkspaceModule::values(WorkspaceModule::starter()),
         ]);
 
         return $this->auth->issueSession($user);

@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\WorkspaceModule;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Workspace;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Support\Str;
@@ -28,6 +30,20 @@ class WorkspacePermissionService
         }
 
         return $role ? $this->roleRepository->getPermissionNames($role) : [];
+    }
+
+    // Drops the permissions of modules that are switched off for the shop (null = no shop limit, e.g. the super admin)
+    public function permissionsInEnabledModules(array $permissions, ?Workspace $workspace): array
+    {
+        if (! $workspace) {
+            return $permissions;
+        }
+
+        return array_values(array_filter($permissions, function (string $permission) use ($workspace) {
+            $module = WorkspaceModule::forPermission($permission);
+
+            return ! $module || $workspace->hasModule($module);
+        }));
     }
 
     // An actor cannot give a permission they do not have
