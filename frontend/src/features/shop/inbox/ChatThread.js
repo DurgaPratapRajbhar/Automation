@@ -29,6 +29,12 @@ function Bubble({ message }) {
           <p className={`mb-0.5 text-xs font-semibold ${message.is_ai ? 'text-emerald-700' : 'text-slate-300'}`}>{who}</p>
         )}
         <p className="whitespace-pre-wrap break-words">{message.body ?? `[${message.type}]`}</p>
+        {message.translation && (
+          <p className={`mt-1 whitespace-pre-wrap break-words border-t pt-1 text-xs ${mine && !message.is_ai ? 'border-slate-600 text-slate-300' : 'border-slate-200 text-slate-500'}`}>
+            <span className="font-semibold">{mine ? 'You wrote: ' : 'Translation: '}</span>
+            {message.translation}
+          </p>
+        )}
         <p className={`mt-1 text-right text-[11px] ${mine && !message.is_ai ? 'text-slate-400' : 'text-slate-500'}`}>
           {formatTime(message.created_at)}
           {mine && <Status message={message} />}

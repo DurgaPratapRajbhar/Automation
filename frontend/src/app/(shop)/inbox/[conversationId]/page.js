@@ -2,13 +2,14 @@ import Link from 'next/link';
 import Alert from '@/components/ui/Alert';
 import AutoRefresh from '@/components/ui/AutoRefresh';
 import ChatThread from '@/features/shop/inbox/ChatThread';
+import LanguageBridgeReply from '@/features/shop/inbox/LanguageBridgeReply';
 import ReplyForm from '@/features/shop/inbox/ReplyForm';
 import TemplateSender from '@/features/shop/inbox/TemplateSender';
 import { sendReply, sendTemplateMessage } from '@/features/shop/inbox/actions';
 import { customerLabel } from '@/features/shop/inbox/format';
 import { getConversation } from '@/features/shop/inbox/queries';
 import { getTemplates } from '@/features/shop/whatsapp/templates/queries';
-import { can } from '@/features/shop/workspace/queries';
+import { can, getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
 export default async function ConversationPage({ params }) {
   const { conversationId } = await params;
@@ -18,6 +19,13 @@ export default async function ConversationPage({ params }) {
 
   const conversation = data.data;
   const canTemplate = await can('messages.template');
+
+  // The customer writes in another language than the business reads: replies can go through the language bridge
+  const { data: access } = await getWorkspaceAccess();
+  const customerLanguage = conversation.customer_language;
+  const bridge = customerLanguage && customerLanguage !== access.data.workspace.inbox_language && access.data.languages[customerLanguage]
+    ? { customerLanguageName: access.data.languages[customerLanguage] }
+    : null;
 
   // Only approved templates can be sent
   const templates = canTemplate ? await getTemplates(conversation.channel_id) : null;
@@ -47,7 +55,11 @@ export default async function ConversationPage({ params }) {
           : <Alert message={templates?.data?.message} />
       )}
 
-      {(await can('messages.create')) && <ReplyForm action={sendReply.bind(null, conversation.id)} />}
+      {(await can('messages.create')) && (
+        bridge
+          ? <LanguageBridgeReply conversationId={conversation.id} bridge={bridge} />
+          : <ReplyForm action={sendReply.bind(null, conversation.id)} />
+      )}
     </div>
   );
 }

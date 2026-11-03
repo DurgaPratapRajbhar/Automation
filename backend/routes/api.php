@@ -126,6 +126,9 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         // Inbox: dukaan ki WhatsApp chats. Reply = "messages.create" permission
         Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
         Route::get('/conversations/{conversationId}', [ConversationController::class, 'show'])->name('conversations.show');
+        Route::post('/conversations/{conversationId}/translate', [ConversationController::class, 'translate'])
+            ->middleware('throttle:30,1')
+            ->name('conversations.translate');
         Route::post('/conversations/{conversationId}/messages', [ConversationController::class, 'reply'])
             ->middleware('throttle:30,1')
             ->name('messages.store');

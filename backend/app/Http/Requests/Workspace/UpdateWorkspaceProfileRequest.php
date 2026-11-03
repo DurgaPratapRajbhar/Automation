@@ -28,6 +28,8 @@ class UpdateWorkspaceProfileRequest extends FormRequest
             'upi_id' => ['sometimes', 'nullable', new UpiId],
             // Language of the website chatbot's replies (auto = same as the customer's)
             'reply_style' => ['sometimes', 'nullable', Rule::in(['auto', 'hinglish'])],
+            // The language the owner reads and writes in; chats are translated into it
+            'inbox_language' => ['sometimes', Rule::in(array_keys(config('translation.languages')))],
         ];
     }
 }

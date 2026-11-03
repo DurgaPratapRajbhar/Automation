@@ -14,6 +14,7 @@ class Conversation extends Model
         'channel_id',
         'customer_phone',
         'customer_name',
+        'customer_language',
         'status',
         'unread_count',
         'last_message_at',

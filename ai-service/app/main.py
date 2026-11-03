@@ -8,6 +8,7 @@ from app import db, indexing
 from app.agent import answer_question
 from app.config import settings
 from app.extraction import UnreadableFile, clean_text, extract_text
+from app.translation import translate
 
 
 @asynccontextmanager
@@ -30,6 +31,11 @@ class AskRequest(BaseModel):
     workspace_id: int
     question: str
     reply_style: str = "auto"  # auto | hinglish
+
+
+class TranslateRequest(BaseModel):
+    text: str
+    target: str  # the language's name in English, e.g. "Hindi"
 
 
 @app.get("/health")
@@ -93,3 +99,9 @@ async def learn_file(
 @app.post("/ask")
 async def ask(request: AskRequest):
     return await answer_question(request.workspace_id, request.question, request.reply_style)
+
+
+# Translate one message (Hindi <-> English...) and tell which language it was written in
+@app.post("/translate")
+async def translate_message(request: TranslateRequest):
+    return await translate(request.text, request.target)

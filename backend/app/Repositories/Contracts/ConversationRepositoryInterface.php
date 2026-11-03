@@ -25,5 +25,7 @@ interface ConversationRepositoryInterface
 
     public function markRead(Conversation $conversation): void;
 
+    public function setCustomerLanguage(Conversation $conversation, string $language): void;
+
     public function touchLastMessage(Conversation $conversation): void;
 }

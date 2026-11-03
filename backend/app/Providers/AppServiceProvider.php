@@ -19,6 +19,9 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\WorkspaceRepositoryInterface;
 use App\Repositories\Eloquent\AuditLogRepository;
 use App\Repositories\Eloquent\CampaignRepository;
+use App\Services\Translation\HttpTranslator;
+use App\Services\Translation\NullTranslator;
+use App\Services\Translation\TranslatorInterface;
 use App\Repositories\Eloquent\ChannelRepository;
 use App\Repositories\Eloquent\ConversationRepository;
 use App\Repositories\Eloquent\CustomerRepository;
@@ -122,6 +125,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             CampaignRepositoryInterface::class,
             CampaignRepository::class
+        );
+
+        // Tests make no network call; the app asks the ai-service
+        $this->app->bind(
+            TranslatorInterface::class,
+            $this->app->environment('testing') ? NullTranslator::class : HttpTranslator::class
         );
 
         $this->app->bind(

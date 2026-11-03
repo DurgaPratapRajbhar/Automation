@@ -472,8 +472,9 @@ test('while testing, a message goes only to the allowed numbers and nobody else 
 
     // a test to a number that is not allowed is refused, and WhatsApp is never called
     $this->postJson("/api/campaigns/{$id}/test", ['phone' => '9000000099'], $headers)
-        ->assertForbidden()
-        ->assertJsonPath('message', 'Sending is limited to test numbers right now, so this message was not sent.');
+        ->assertOk()
+        ->assertJsonPath('data.status', 'failed')
+        ->assertJsonPath('data.error', 'Sending is limited to test numbers right now, so this message was not sent.');
 
     // the allowed number works
     $this->postJson("/api/campaigns/{$id}/test", ['phone' => '9811122233'], $headers)->assertOk();

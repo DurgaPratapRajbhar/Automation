@@ -54,6 +54,8 @@ class WorkspaceProfileService
             'gstin' => $workspace->gstin,
             'upi_id' => $workspace->upi_id,
             'reply_style' => $workspace->reply_style,
+            'inbox_language' => $workspace->inbox_language,
+            'languages' => config('translation.languages'),
         ];
     }
 }

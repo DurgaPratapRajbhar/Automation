@@ -62,6 +62,11 @@ class ConversationRepository implements ConversationRepositoryInterface
         }
     }
 
+    public function setCustomerLanguage(Conversation $conversation, string $language): void
+    {
+        $conversation->update(['customer_language' => $language]);
+    }
+
     public function touchLastMessage(Conversation $conversation): void
     {
         $conversation->update([

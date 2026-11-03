@@ -14,6 +14,8 @@ class Message extends Model
         'external_id',
         'type',
         'body',
+        'language',
+        'translation',
         'payload',
         'status',
         'error',

@@ -23,6 +23,7 @@ class Workspace extends Model
         'api_key_hash',
         'api_key_hint',
         'reply_style',
+        'inbox_language',
         'modules',
         'trial_ends_at',
     ];

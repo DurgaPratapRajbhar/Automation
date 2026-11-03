@@ -17,6 +17,25 @@ export async function sendReply(conversationId, previousState, formData) {
   return data.data.status === 'failed' ? { message: data.message } : { sent: Date.now() };
 }
 
+// The language bridge: look at the reply in the customer's language before it goes
+export async function translateReply(conversationId, text) {
+  const { ok, data } = await backend(`conversations/${conversationId}/translate`, { method: 'POST', body: { text } });
+
+  return ok ? { translation: data.data } : { message: data.errors?.text?.[0] ?? data.message };
+}
+
+// Sends the translated text; the owner's own words are kept with it
+export async function sendTranslatedReply(conversationId, { body, original, language }) {
+  const { ok, data } = await backend(`conversations/${conversationId}/messages`, { method: 'POST', body: { body, original, language } });
+
+  if (!ok) return { message: data.errors?.body?.[0] ?? data.message };
+
+  revalidatePath(`/inbox/${conversationId}`);
+  revalidatePath('/inbox');
+
+  return data.data.status === 'failed' ? { message: data.message } : { sent: true };
+}
+
 // Approved template; value of the picker is "name|language"
 export async function sendTemplateMessage(conversationId, previousState, formData) {
   const [name, language] = String(formData.get('template') ?? '').split('|');

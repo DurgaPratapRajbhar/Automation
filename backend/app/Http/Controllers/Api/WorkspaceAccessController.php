@@ -28,6 +28,7 @@ class WorkspaceAccessController extends Controller
                     'id' => $workspace->id,
                     'name' => $workspace->name,
                     'slug' => $workspace->slug,
+                    'inbox_language' => $workspace->inbox_language,
                     'type' => $workspace->type,
                     'trial_ends_at' => $workspace->trial_ends_at,
                     'trial_days_left' => $workspace->trialDaysLeft(),
@@ -44,6 +45,8 @@ class WorkspaceAccessController extends Controller
                 // Modules switched on for this shop, and every module there is (the app shows the others as "ask ScriptDP")
                 'modules' => $user->isSuperAdmin() ? WorkspaceModule::values() : $workspace->enabledModules(),
                 'available_modules' => WorkspaceModule::values(),
+                // code => name of the languages the language bridge knows (Inbox language choice, labels)
+                'languages' => config('translation.languages'),
                 'permissions' => $this->permissionService->permissionsInEnabledModules(
                     $this->permissionService->permissionsOf($user, $role),
                     $user->isSuperAdmin() ? null : $workspace

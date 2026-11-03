@@ -109,6 +109,8 @@ class ChannelService
         string $recipient,
         string $message
     ): array {
+        $this->ensureAllowedRecipient($recipient);
+
         [$provider, $credentials] = $this->providerFor($workspaceId, $channelId);
 
         return $provider->sendMessage($credentials, $recipient, $message);
@@ -122,9 +124,21 @@ class ChannelService
         string $language,
         array $parameters
     ): array {
+        $this->ensureAllowedRecipient($recipient);
+
         [$provider, $credentials] = $this->providerFor($workspaceId, $channelId);
 
         return $provider->sendTemplate($credentials, $recipient, $templateName, $language, $parameters);
+    }
+
+    // While testing, only the numbers in CAMPAIGN_ONLY_SEND_TO may get any message (replies, templates, campaigns, bot). Empty = anyone.
+    private function ensureAllowedRecipient(string $recipient): void
+    {
+        $allowed = config('campaigns.only_send_to');
+
+        if ($allowed !== [] && ! in_array($recipient, $allowed, true)) {
+            throw new BusinessRuleException(__('campaigns.test_numbers_only'), 403);
+        }
     }
 
     // The provider strategy + credentials of a connected channel in this workspace

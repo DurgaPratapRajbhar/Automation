@@ -39,6 +39,14 @@ export default function ProfileForm({ profile, canEdit }) {
           <Input label="UPI ID" name="upi_id" defaultValue={values.upi_id} error={errors.upi_id} placeholder="shop@okaxis" />
         </div>
 
+        <Select
+          label="The language you read and write in (customers' messages are translated into it)"
+          name="inbox_language"
+          options={Object.entries(profile.languages).map(([value, label]) => ({ value, label }))}
+          defaultValue={values.inbox_language}
+          error={errors.inbox_language}
+        />
+
         <Select label="Website chatbot ki bhasha" name="reply_style" options={REPLY_STYLES} defaultValue={values.reply_style} error={errors.reply_style} />
       </fieldset>
 

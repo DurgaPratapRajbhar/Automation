@@ -56,7 +56,7 @@ class ConversationService
     }
 
     // Staff ka reply: pehle inbox me save, phir WhatsApp; fail hua to status failed + wajah
-    public function reply(int $workspaceId, int $conversationId, int $userId, string $body): array
+    public function reply(int $workspaceId, int $conversationId, int $userId, string $body, ?string $original = null, ?string $language = null): array
     {
         $conversation = $this->findOrFail($workspaceId, $conversationId);
 
@@ -66,6 +66,9 @@ class ConversationService
             'direction' => 'outbound',
             'type' => 'text',
             'body' => $body,
+            // Sent in the customer's language: keep what the owner wrote, so the Inbox shows it too
+            'language' => $original ? $language : null,
+            'translation' => $original,
             'status' => 'sent',
             'sent_by_user_id' => $userId,
         ]);
@@ -108,6 +111,7 @@ class ConversationService
             'id' => $conversation->id,
             'channel_id' => $conversation->channel_id,
             'customer_name' => $conversation->customer_name,
+            'customer_language' => $conversation->customer_language,
             'customer_phone' => $conversation->customer_phone,
             'status' => $conversation->status,
             'unread_count' => $conversation->unread_count,
@@ -127,6 +131,8 @@ class ConversationService
             'direction' => $message->direction,
             'type' => $message->type,
             'body' => $message->body,
+            'language' => $message->language,
+            'translation' => $message->translation,
             'status' => $message->status,
             'error' => $message->error,
             'is_ai' => $this->isAi($message),

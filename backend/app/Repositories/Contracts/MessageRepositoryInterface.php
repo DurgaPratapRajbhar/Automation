@@ -20,6 +20,9 @@ interface MessageRepositoryInterface
 
     public function setStatus(Message $message, string $status): void;
 
+    // language = the language of the text; translation = the same text in the business's Inbox language (null = none)
+    public function setTranslation(Message $message, ?string $language, ?string $translation): void;
+
     public function markFailed(Message $message, string $error): void;
 
     // Meta's wamid of a message we sent

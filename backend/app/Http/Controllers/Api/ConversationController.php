@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversation\ReplyRequest;
 use App\Http\Requests\Conversation\SendTemplateRequest;
+use App\Http\Requests\Translation\TranslateReplyRequest;
 use App\Services\ConversationService;
+use App\Services\Translation\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ConversationController extends Controller
 {
     public function __construct(
-        private ConversationService $conversationService
+        private ConversationService $conversationService,
+        private TranslationService $translation
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -49,7 +52,9 @@ class ConversationController extends Controller
             $workspace->id,
             $conversationId,
             $request->user()->id,
-            $request->validated('body')
+            $request->validated('body'),
+            $request->validated('original'),
+            $request->validated('language')
         );
 
         return response()->json([
@@ -57,6 +62,17 @@ class ConversationController extends Controller
             'message' => __($message['status'] === 'failed' ? 'conversations.send_failed' : 'conversations.sent'),
             'data' => $message,
         ], 201);
+    }
+
+    // Look at the reply in the customer's language before sending it
+    public function translate(TranslateReplyRequest $request, int $conversationId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->translation->previewReply($workspace->id, $conversationId, $request->validated('text'), $request->validated('to')),
+        ]);
     }
 
     public function sendTemplate(SendTemplateRequest $request, int $conversationId): JsonResponse

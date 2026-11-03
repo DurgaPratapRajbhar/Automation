@@ -45,6 +45,11 @@ class MessageRepository implements MessageRepositoryInterface
         $message->update(['status' => $status]);
     }
 
+    public function setTranslation(Message $message, ?string $language, ?string $translation): void
+    {
+        $message->update(['language' => $language, 'translation' => $translation]);
+    }
+
     public function markFailed(Message $message, string $error): void
     {
         $message->update(['status' => MessageStatus::Failed->value, 'error' => $error]);
