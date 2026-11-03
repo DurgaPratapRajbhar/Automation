@@ -28,3 +28,10 @@ docker compose exec backend php -r "var_dump(opcache_get_status(false)['opcache_
 
 Step 2 (vendor ko named volume me) karne se ye 526 files Windows bridge ki jagah Linux disk se padhi jayengi. Asli speed wahi se aayegi.
 
+
+
+
+root@srv1239232:/opt/blog# printf "PasswordAuthentication no\nPermitRootLogin prohibit-password\n" > /etc/ssh/sshd_config.d/00-no-password.conf && sshd -t && systemctl reload ssh && sshd -T | grep -iE "^(passwordauthentication|permitrootlogin)"
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+root@srv1239232:/opt/blog# 
