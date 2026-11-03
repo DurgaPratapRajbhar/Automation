@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import { MENU } from '@/components/shop/menu';
+import UserMenu from '@/components/shop/UserMenu';
 import NavLink from '@/components/ui/NavLink';
 
-// Left menu on a computer or tablet. On a phone it is a top bar with a "Menu" button that opens the links.
+// Left menu on a computer or tablet. On a phone it is a top bar with the profile button and a "Menu" button that opens the links.
 export default function Sidebar({ access }) {
   const [open, setOpen] = useState(false);
   const links = MENU.filter((item) => !item.permission || access.permissions.includes(item.permission));
 
   return (
-    <aside className="border-b border-slate-200 bg-white md:flex md:min-h-screen md:w-60 md:flex-col md:border-b-0 md:border-r">
+    <aside className="border-b border-slate-200 bg-white md:flex md:min-h-screen md:w-60 md:shrink-0 md:flex-col md:border-b-0 md:border-r">
       <div className="flex items-center justify-between gap-3 p-4">
         <div className="flex min-w-0 items-center gap-3">
           <img src="/brand/scriptdp-logo.png" alt="ScriptDP" width="36" height="36" className="h-9 w-9 shrink-0 rounded-lg" />
@@ -20,15 +21,18 @@ export default function Sidebar({ access }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-controls="shop-menu"
-          className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-100 md:hidden"
-        >
-          {open ? 'Close' : 'Menu'}
-        </button>
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
+          <UserMenu access={access} />
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-controls="shop-menu"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-100"
+          >
+            {open ? 'Close' : 'Menu'}
+          </button>
+        </div>
       </div>
 
       <nav id="shop-menu" className={`${open ? 'flex' : 'hidden'} flex-1 flex-col gap-1 px-4 pb-4 md:flex`}>
@@ -44,11 +48,6 @@ export default function Sidebar({ access }) {
             {item.label}
           </NavLink>
         ))}
-
-        {/* Plain link: /logout is a route that clears the session */}
-        <a href="/logout" className="mt-2 rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100 md:mt-auto">
-          Logout
-        </a>
       </nav>
     </aside>
   );

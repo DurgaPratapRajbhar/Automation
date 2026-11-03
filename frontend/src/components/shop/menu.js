@@ -8,6 +8,10 @@ export const MENU = [
   { label: 'Knowledge', href: '/knowledge', permission: 'knowledge-sources.view' },
   { label: 'Members', href: '/members', permission: 'members.view' },
   { label: 'Roles', href: '/roles', permission: 'roles.view' },
+];
+
+// Links in the profile menu at the top right (same permission rule as MENU)
+export const ACCOUNT_MENU = [
   { label: 'Shop profile', href: '/settings/profile', permission: 'workspace.view' },
   { label: 'Password', href: '/settings/password', permission: null },
 ];
