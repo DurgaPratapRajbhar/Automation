@@ -17,9 +17,7 @@ export default function Sidebar({ access }) {
         <div className="flex min-w-0 items-center gap-3">
           <img src="/brand/scriptdp-logo.png" alt="ScriptDP" width="36" height="36" className="h-9 w-9 shrink-0 rounded-lg" />
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">ScriptDP</p>
-            <p className="truncate font-semibold">{access.workspace.name}</p>
-          </div>
+            <p className="truncate font-semibold">{access.workspace.name}</p>          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2 md:hidden">
