@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ACCOUNT_MENU } from '@/components/shop/menu';
+import Icon from '@/components/ui/Icon';
 
 // Profile button at the top right: shop name, role, and the links Shop profile / Password / Logout
 export default function UserMenu({ access }) {
@@ -32,7 +33,7 @@ export default function UserMenu({ access }) {
     };
   }, [open]);
 
-  const itemClass = 'block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100';
+  const itemClass = 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100';
 
   return (
     <div ref={box} className="relative">
@@ -50,7 +51,7 @@ export default function UserMenu({ access }) {
         <span className="hidden text-left leading-tight sm:block">
           <span className="block text-sm font-medium">{roleName}</span>
         </span>
-        <span aria-hidden="true" className="text-xs text-slate-500">▾</span>
+        <Icon name="chevron" size={16} className="text-slate-500" />
       </button>
 
       {open && (
@@ -63,11 +64,13 @@ export default function UserMenu({ access }) {
           <div className="pt-2">
             {links.map((item) => (
               <Link key={item.href} href={item.href} role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
+                <Icon name={item.icon} size={18} className="text-slate-500" />
                 {item.label}
               </Link>
             ))}
             {/* Plain link: /logout is a route that clears the session */}
-            <a href="/logout" role="menuitem" className={`${itemClass} text-red-600`}>
+            <a href="/logout" role="menuitem" className={`${itemClass} mt-1 border-t border-slate-100 pt-3 text-red-600`}>
+              <Icon name="logout" size={18} />
               Logout
             </a>
           </div>

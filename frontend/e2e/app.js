@@ -205,7 +205,8 @@ async (page) => {
   });
 
   await step('Owner: logout', async () => {
-    await page.getByRole('link', { name: 'Logout' }).click();
+    await page.locator('header').getByRole('button', { name: 'Profile menu' }).click();
+    await page.getByRole('menuitem', { name: 'Logout' }).click();
     await expectUrl('/login');
   });
 
@@ -215,7 +216,11 @@ async (page) => {
     await shopLogin(staff);
     await expectUrl('/dashboard');
     const menu = await page.locator('aside').innerText();
-    if (!menu.includes('Customers') || menu.includes('Roles') || menu.includes('Shop profile') || menu.includes('Knowledge')) throw new Error(`menu: ${menu.replace(/\n/g, ', ')}`);
+    if (!menu.includes('Customers') || menu.includes('Roles') || menu.includes('Knowledge')) throw new Error(`menu: ${menu.replace(/\n/g, ', ')}`);
+    // "Shop profile" lives in the profile menu at the top right
+    await page.locator('header').getByRole('button', { name: 'Profile menu' }).click();
+    if (await page.getByRole('menuitem', { name: 'Shop profile' }).count()) throw new Error('"Shop profile" is visible to staff');
+    await page.keyboard.press('Escape');
     await page.goto(`${BASE}/customers`);
     await page.getByRole('heading', { name: 'Customers' }).waitFor();
     if (await page.getByRole('link', { name: 'New customer' }).count()) throw new Error('"New customer" is visible');

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { MENU } from '@/components/shop/menu';
 import UserMenu from '@/components/shop/UserMenu';
+import Icon from '@/components/ui/Icon';
 import NavLink from '@/components/ui/NavLink';
 
 // Left menu on a computer or tablet. On a phone it is a top bar with the profile button and a "Menu" button that opens the links.
@@ -41,10 +42,11 @@ export default function Sidebar({ access }) {
             key={item.href}
             href={item.href}
             onClick={() => setOpen(false)}
-            className="rounded-lg px-3 py-2"
-            activeClassName="bg-emerald-50 font-semibold text-emerald-800"
-            inactiveClassName="text-slate-700 hover:bg-slate-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm"
+            activeClassName="bg-emerald-50 font-semibold text-emerald-800 ring-1 ring-emerald-100"
+            inactiveClassName="font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           >
+            <Icon name={item.icon} size={19} />
             {item.label}
           </NavLink>
         ))}
