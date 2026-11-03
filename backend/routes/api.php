@@ -107,6 +107,7 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         // Campaigns: one approved template to many people (campaign module)
         Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
         Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.create');
+        Route::get('/campaigns/options', [CampaignController::class, 'options'])->name('campaigns.options');
         Route::get('/campaigns/{campaignId}', [CampaignController::class, 'show'])->name('campaigns.view');
         Route::post('/campaigns/{campaignId}/start', [CampaignController::class, 'start'])
             ->middleware('throttle:10,1')

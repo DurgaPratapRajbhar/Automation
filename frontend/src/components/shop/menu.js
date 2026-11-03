@@ -7,6 +7,7 @@ export const MENU = [
   { label: 'WhatsApp', href: '/settings/whatsapp', permission: 'channels.view', icon: 'whatsapp', hint: 'Connect your business’s WhatsApp number.' },
   { label: 'Customers', href: '/customers', permission: 'customers.view', icon: 'customers', hint: 'Your customer list and their details.' },
   { label: 'Knowledge', href: '/knowledge', permission: 'knowledge-sources.view', icon: 'knowledge', hint: 'Teach the AI what you offer, your prices and timings.' },
+  { label: 'Campaigns', href: '/campaigns', permission: 'campaigns.view', icon: 'megaphone', hint: 'Send a WhatsApp message to many people at once, with their name and details.' },
   { label: 'Members', href: '/members', permission: 'members.view', icon: 'members', hint: 'Add staff who can use the app.' },
   { label: 'Roles', href: '/roles', permission: 'roles.view', icon: 'roles', hint: 'Choose what each staff member can do.' },
 ];

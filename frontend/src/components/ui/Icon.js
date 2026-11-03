@@ -63,6 +63,13 @@ const PATHS = {
       <path d="M21 12H9" />
     </>
   ),
+  megaphone: (
+    <>
+      <path d="M3 11v2a1 1 0 0 0 1 1h2l8 4V6L6 10H4a1 1 0 0 0-1 1z" />
+      <path d="M18 8a5 5 0 0 1 0 8" />
+      <path d="M6 14l1 6h3l-1-5" />
+    </>
+  ),
   chevron: <path d="m6 9 6 6 6-6" />,
   phone: (
     <>

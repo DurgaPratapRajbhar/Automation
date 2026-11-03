@@ -344,3 +344,14 @@ test('a business that signed up by itself cannot use campaigns until the super a
     $this->getJson('/api/campaigns', $shop)->assertForbidden()->assertJsonPath('module', 'campaigns');
     $this->postJson('/api/campaigns', [], $shop)->assertForbidden();
 });
+
+test('the new-campaign page gets the connected numbers, the Excel columns and how many people can get one', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+
+    $this->getJson('/api/campaigns/options', $headers)
+        ->assertOk()
+        ->assertJsonPath('data.channels.0.id', $channel->id)
+        ->assertJsonPath('data.columns', ['Fees Due', 'Last Date'])
+        ->assertJsonPath('data.people.ready', 2)
+        ->assertJsonPath('data.people.total', 4);
+});

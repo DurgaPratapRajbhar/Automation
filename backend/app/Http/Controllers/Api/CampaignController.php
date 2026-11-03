@@ -24,6 +24,13 @@ class CampaignController extends Controller
         ]);
     }
 
+    public function options(Request $request): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json(['success' => true, 'data' => $this->campaignService->options($workspace->id)]);
+    }
+
     public function show(Request $request, int $campaignId): JsonResponse
     {
         $workspace = $request->attributes->get('workspace');

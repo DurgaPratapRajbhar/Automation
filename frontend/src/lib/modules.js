@@ -5,6 +5,7 @@ export const MODULES = [
   { key: 'whatsapp', label: 'WhatsApp', hint: 'Connect your business’s WhatsApp number.', href: '/settings/whatsapp', icon: 'whatsapp' },
   { key: 'knowledge', label: 'Knowledge', hint: 'Teach the AI what you offer, your prices and timings.', href: '/knowledge', icon: 'knowledge' },
   { key: 'customers', label: 'Customers', hint: 'Your customer list and their details.', href: '/customers', icon: 'customers' },
+  { key: 'campaigns', label: 'Campaigns', hint: 'Send a WhatsApp message to many people at once, with their name and details.', href: '/campaigns', icon: 'megaphone' },
   { key: 'team', label: 'Staff & roles', hint: 'Add staff and choose what each can do.', href: '/members', icon: 'members' },
 ];
 

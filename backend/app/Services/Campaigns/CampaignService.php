@@ -45,6 +45,32 @@ class CampaignService
             ->through(fn (Campaign $campaign) => $this->present($campaign));
     }
 
+    // What the "new campaign" page needs: connected numbers, the Excel columns of the contacts, and how many can get one
+    public function options(int $workspaceId): array
+    {
+        $columns = [];
+        $ready = 0;
+        $everyone = $this->customers->forCampaign($workspaceId, null);
+
+        foreach ($everyone as $customer) {
+            $ready += $this->leaveOutReason($customer) === null ? 1 : 0;
+
+            foreach (array_keys($customer->data ?? []) as $column) {
+                $columns[$column] = true;
+            }
+        }
+
+        return [
+            'channels' => $this->channels->getByWorkspaceId($workspaceId)
+                ->where('status', 'connected')
+                ->map(fn ($channel) => ['id' => $channel->id, 'name' => $channel->name])
+                ->values()
+                ->all(),
+            'columns' => array_keys($columns),
+            'people' => ['ready' => $ready, 'total' => $everyone->count()],
+        ];
+    }
+
     // The campaign with its report and the first few messages as they will read
     public function show(int $workspaceId, int $campaignId): array
     {

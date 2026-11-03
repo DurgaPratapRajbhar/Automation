@@ -1,4 +1,7 @@
 const nextConfig = {
+  // An Excel of contacts goes through a server action (the backend allows up to 5 MB)
+  experimental: { serverActions: { bodySizeLimit: '6mb' } },
+
   // Public test domain (ngrok) may load dev assets; comma separated hosts
   allowedDevOrigins: (process.env.ALLOWED_DEV_ORIGINS ?? '').split(',').map((host) => host.trim()).filter(Boolean),
 
