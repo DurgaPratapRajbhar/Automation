@@ -3,12 +3,18 @@
 import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/Icon';
 
-// "Install app" button. Android/Chrome gives a real install prompt; on an iPhone the only way is
-// Safari's Share menu, so there we show a short how-to. Hidden once the app is installed.
+const HOW_TO = {
+  iphone: 'On iPhone: tap the Share button in Safari, then "Add to Home Screen".',
+  android: 'In Chrome: tap the ⋮ menu (top right), then "Install app" or "Add to Home screen".',
+};
+
+// "Install app" button. Chrome gives a real install prompt. Where it does not (iPhone, or a phone whose browser
+// did not offer it), the button shows a short how-to instead. Hidden once the app is installed.
 export default function InstallApp({ className = '' }) {
   const [promptEvent, setPromptEvent] = useState(null);
   const [installed, setInstalled] = useState(false);
-  const [iphone, setIphone] = useState(false);
+  const [platform, setPlatform] = useState(null); // 'iphone' | 'android' | null (computer)
+  const [waited, setWaited] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
@@ -18,7 +24,9 @@ export default function InstallApp({ className = '' }) {
 
     const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     setInstalled(standalone);
-    setIphone(/iphone|ipad|ipod/i.test(navigator.userAgent));
+
+    const agent = navigator.userAgent;
+    setPlatform(/iphone|ipad|ipod/i.test(agent) ? 'iphone' : /android/i.test(agent) ? 'android' : null);
 
     const onPrompt = (event) => {
       event.preventDefault();
@@ -28,24 +36,29 @@ export default function InstallApp({ className = '' }) {
 
     window.addEventListener('beforeinstallprompt', onPrompt);
     window.addEventListener('appinstalled', onInstalled);
+    // Chrome sends the prompt event a moment after the page loads; if it never comes, show the how-to
+    const timer = setTimeout(() => setWaited(true), 3000);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('beforeinstallprompt', onPrompt);
       window.removeEventListener('appinstalled', onInstalled);
     };
   }, []);
 
-  if (installed || (!promptEvent && !iphone)) return null;
+  const needsHowTo = platform === 'iphone' || (platform === 'android' && waited && !promptEvent);
+
+  if (installed || (!promptEvent && !needsHowTo)) return null;
 
   async function install() {
-    if (iphone) {
-      setShowHelp((value) => !value);
+    if (promptEvent) {
+      await promptEvent.prompt();
+      setPromptEvent(null);
 
       return;
     }
 
-    await promptEvent.prompt();
-    setPromptEvent(null);
+    setShowHelp((value) => !value);
   }
 
   return (
@@ -61,7 +74,7 @@ export default function InstallApp({ className = '' }) {
 
       {showHelp && (
         <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl bg-white p-3 text-sm text-slate-700 shadow-lg ring-1 ring-slate-200">
-          On iPhone: tap the <strong>Share</strong> button in Safari, then <strong>Add to Home Screen</strong>.
+          {HOW_TO[platform]}
         </div>
       )}
     </div>

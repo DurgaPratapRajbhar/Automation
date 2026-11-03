@@ -1,3 +1,5 @@
+import InstallApp from '@/components/ui/InstallApp';
+
 // Centered card for login/register pages, with the ScriptDP logo above it
 export default function AuthCard({ children }) {
   return (
@@ -11,6 +13,11 @@ export default function AuthCard({ children }) {
       </div>
 
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">{children}</div>
+
+      {/* A new shopkeeper meets the app here first: show "Install app" on the phone */}
+      <div className="md:hidden">
+        <InstallApp />
+      </div>
 
       <p className="text-xs text-slate-500">
         <a href="https://scriptdp.com/en/terms" className="underline">Terms</a>
