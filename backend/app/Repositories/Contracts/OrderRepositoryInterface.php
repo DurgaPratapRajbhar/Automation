@@ -41,6 +41,9 @@ interface OrderRepositoryInterface
     // Orders confirmed in this time: how many and how much
     public function confirmedBetween(int $workspaceId, CarbonInterface $from, CarbonInterface $to): array;
 
+    // The newest draft or confirmed order of this chat that was not delivered yet (the one a customer can still cancel)
+    public function latestOpenOfChat(int $conversationId): ?Order;
+
     // The drafts of this chat that wait for the owner, with their items
     public function draftsOfChat(int $conversationId): Collection;
 }

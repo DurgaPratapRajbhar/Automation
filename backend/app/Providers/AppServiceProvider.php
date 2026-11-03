@@ -42,6 +42,7 @@ use App\Repositories\Eloquent\WorkspaceRepository;
 use App\Services\Actions\ActionService;
 use App\Services\Actions\BookingReminderHandler;
 use App\Services\Actions\FeedbackRequestHandler;
+use App\Services\Actions\OrderCancelHandler;
 use App\Services\Actions\OrderConfirmHandler;
 use App\Services\Actions\ReminderSendHandler;
 use App\Services\Actions\ReportSendHandler;
@@ -183,6 +184,7 @@ class AppServiceProvider extends ServiceProvider
         // One handler class per action type; each is added to this tag when it is built
         $this->app->tag([
             OrderConfirmHandler::class,
+            OrderCancelHandler::class,
             ReminderSendHandler::class,
             ReportSendHandler::class,
             BookingReminderHandler::class,

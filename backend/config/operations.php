@@ -21,6 +21,12 @@ return [
         'रेट', 'कीमत', 'दाम', 'कितना', 'कितने', 'कितनी', 'चाहिए', 'चाहिये', 'ऑर्डर', 'आर्डर', 'बुक', 'बुकिंग', 'उपलब्ध', 'स्टॉक', 'मिलेगा', 'मिलेगी', 'खरीदना',
     ],
 
+    // A message with one of these (anywhere in it) from a customer who has an open order asks to cancel it
+    'cancel_words' => ['cancel', 'cancle', 'radd', 'nahi chahiye', 'nahin chahiye', 'रद्द', 'कैंसल', 'कैन्सल', 'नहीं चाहिए', 'नहीं चाहिये'],
+
+    // The owner is asked about a cancel request of the same order only once in this many hours
+    'cancel_ask_hours' => 24,
+
     // Once the orders assistant has spoken, a short answer ("haan", "ok", "2") stays with it for this many minutes
     'talk_minutes' => 30,
 ];

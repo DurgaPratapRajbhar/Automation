@@ -99,6 +99,16 @@ class OrderRepository implements OrderRepositoryInterface
         $order->update(['delivery_status' => $deliveryStatus]);
     }
 
+    public function latestOpenOfChat(int $conversationId): ?Order
+    {
+        return Order::with('items')
+            ->where('conversation_id', $conversationId)
+            ->whereIn('status', [OrderStatus::Draft->value, OrderStatus::Confirmed->value])
+            ->where(fn ($query) => $query->whereNull('delivery_status')->orWhere('delivery_status', '!=', 'delivered'))
+            ->orderByDesc('id')
+            ->first();
+    }
+
     public function draftsOfChat(int $conversationId): Collection
     {
         return Order::with('items')->where('conversation_id', $conversationId)->where('status', OrderStatus::Draft->value)->get();

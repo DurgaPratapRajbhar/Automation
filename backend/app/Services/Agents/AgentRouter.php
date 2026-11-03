@@ -14,12 +14,14 @@ class AgentRouter
     public function __construct(
         private MessageRepositoryInterface $messages,
         private ConversationRepositoryInterface $conversations,
+        CancellationAgent $cancellation,
         SalesAgent $sales,
         OperationsAgent $operations,
         SupportAgent $support,
     ) {
-        // Operations first: someone who writes about buying is answered, not asked the lead questions (it leaves a chat that is being qualified to Sales)
-        $this->agents = [$operations, $sales, $support];
+        // Cancellation first: "cancel" with an open order must never be answered as a question or a new order.
+        // Then Operations: someone who writes about buying is answered, not asked the lead questions (it leaves a chat that is being qualified to Sales)
+        $this->agents = [$cancellation, $operations, $sales, $support];
     }
 
     public function replyTo(int $messageId): void

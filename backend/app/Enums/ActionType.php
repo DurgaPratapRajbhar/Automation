@@ -6,6 +6,7 @@ namespace App\Enums;
 enum ActionType: string
 {
     case OrderConfirm = 'order.confirm';
+    case OrderCancel = 'order.cancel';
     case ReminderSend = 'reminder.send';
     case ReportSend = 'report.send';
     case BookingReminder = 'booking.reminder';

@@ -8,14 +8,15 @@ A failure shows under **Problems**; the owner can dismiss it (what was prepared 
 |---|---|---|
 | Support (`SupportAgent`) | everything the others do not take | answers from the Knowledge text |
 | Orders (`OperationsAgent`) | the message is about buying (a buying word or a product name, in Latin or Hindi script), or answers the Orders assistant | price and stock from the real product list, drafts an order or a booking at OUR prices; asks for the address if the business delivers |
+| Cancellation (`CancellationAgent`) | a customer with an open (not delivered) order writes "cancel" (words in `config/operations.php`, Hindi script too; no AI) | tells the customer the shop was asked, alerts the owner, proposes `order.cancel`; the owner's Yes cancels the order, gives the stock back and tells the customer |
 | Sales (`SalesAgent`) | the first message of a new person, when the lead questions are on and it is not about buying | asks the owner's questions (up to 3), scores the lead hot / warm / cold, WhatsApp alert for a hot lead |
 | Finance (`FinanceAgent`) | watches every customer text with a date or money in it (never answers) | saves dated promises ("kal payment kar dunga"); suggests a reminder for late payments |
 | Marketing (`MarketingAgent`) | the owner asks for a campaign message | writes a Meta-ready template from the real products (`{{1}}` = name, STOP line always added); nothing is sent |
 
-Router order: Orders, Sales, Support (`AgentRouter`).
+Router order: Cancellation, Orders, Sales, Support (`AgentRouter`).
 
 ## Actions (`agent_actions`, one handler class per type)
-`order.confirm`, `reminder.send` (late payment), `booking.reminder`, `feedback.request`, `report.send` (daily report to the owner's own WhatsApp).
+`order.confirm`, `order.cancel`, `reminder.send` (late payment), `booking.reminder`, `feedback.request`, `report.send` (daily report to the owner's own WhatsApp).
 The owner can switch on a standing Yes for booking reminders and feedback (Settings, Orders and alerts).
 
 ## Schedules (`routes/console.php`; production runs them in the `scheduler` service)

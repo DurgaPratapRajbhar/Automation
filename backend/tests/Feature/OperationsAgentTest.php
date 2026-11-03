@@ -628,3 +628,97 @@ test('a question written in Hindi script reaches the orders assistant', function
 
     expect($operations->asked)->toHaveCount(2);
 });
+
+// A confirmed order of 2 lamps (stock 5 -> 3), and the chat it came from
+function confirmedLampOrder(TestCase $test): array
+{
+    [$headers, , $lamp] = opsBusiness($test);
+    fakeOperations(opsAnswer('Noted.', [['product_id' => $lamp->id, 'quantity' => 2]], ready: true));
+    $chat = customerAsks('2 solar lamp chahiye');
+    $confirm = $test->getJson('/api/actions', $headers)->json('data.0.id');
+    $test->putJson("/api/actions/{$confirm}", ['decision' => 'approve'], $headers)->assertOk();
+
+    return [$headers, $lamp, $chat];
+}
+
+test('"cancel" with an open order asks the owner; the order stays until the owner says yes', function () {
+    [$headers, $lamp, $chat] = confirmedLampOrder($this);
+
+    customerAsks('Cancel kar do');
+
+    $told = Message::where('conversation_id', $chat->id)->where('direction', 'outbound')->latest('id')->first();
+    expect($told->body)->toBe(__('orders.cancel_asked'))
+        ->and(Order::first()->status->value)->toBe('confirmed')
+        ->and($lamp->refresh()->stock)->toBe(3);
+
+    $this->getJson('/api/actions?status=proposed', $headers)
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.type', 'order.cancel')
+        ->assertJsonPath('data.0.conversation_id', $chat->id)
+        ->assertJsonPath('data.0.summary', 'Cancel order: 2 × Solar lamp = ₹900.00 for Meena');
+});
+
+test('when the owner approves, the order is cancelled, the stock comes back and the customer is told', function () {
+    [$headers, $lamp, $chat] = confirmedLampOrder($this);
+    customerAsks('Order cancel');
+    $action = $this->getJson('/api/actions?status=proposed', $headers)->json('data.0.id');
+
+    $this->putJson("/api/actions/{$action}", ['decision' => 'approve'], $headers)->assertOk()->assertJsonPath('data.status', 'executed');
+
+    expect(Order::first()->status->value)->toBe('cancelled')
+        ->and($lamp->refresh()->stock)->toBe(5)
+        ->and(Message::where('conversation_id', $chat->id)->where('direction', 'outbound')->latest('id')->first()->body)->toContain('Your order is cancelled.');
+});
+
+test('when the owner says no, the order stays', function () {
+    [$headers, $lamp] = confirmedLampOrder($this);
+    customerAsks('cancel');
+    $action = $this->getJson('/api/actions?status=proposed', $headers)->json('data.0.id');
+
+    $this->putJson("/api/actions/{$action}", ['decision' => 'reject'], $headers)->assertOk();
+
+    expect(Order::first()->status->value)->toBe('confirmed')->and($lamp->refresh()->stock)->toBe(3);
+});
+
+test('asking twice asks the owner once', function () {
+    [$headers] = confirmedLampOrder($this);
+
+    customerAsks('cancel');
+    customerAsks('please cancel it');
+
+    $this->getJson('/api/actions?status=proposed', $headers)->assertJsonCount(1, 'data');
+});
+
+test('"cancel" with no open order is an ordinary message', function () {
+    [$headers] = opsBusiness($this);
+
+    customerAsks('Can I cancel later?');
+
+    $this->getJson('/api/actions', $headers)->assertJsonCount(0, 'data');
+});
+
+test('a delivered order cannot be cancelled by a message', function () {
+    [$headers] = confirmedLampOrder($this);
+    Order::query()->update(['delivery_status' => 'delivered']);
+
+    customerAsks('cancel');
+
+    $this->getJson('/api/actions?status=proposed', $headers)->assertJsonCount(0, 'data');
+});
+
+test('a Hindi-script cancel word and a draft order work too', function () {
+    [$headers, , $lamp] = opsBusiness($this);
+    fakeOperations(opsAnswer('Noted.', [['product_id' => $lamp->id, 'quantity' => 1]], ready: true));
+    customerAsks('1 solar lamp chahiye');
+
+    customerAsks('ऑर्डर रद्द करो');
+
+    $actions = $this->getJson('/api/actions?status=proposed', $headers)->json('data');
+    expect(collect($actions)->pluck('type')->sort()->values()->all())->toBe(['order.cancel', 'order.confirm']);
+
+    $cancel = collect($actions)->firstWhere('type', 'order.cancel');
+    $this->putJson("/api/actions/{$cancel['id']}", ['decision' => 'approve'], $headers)->assertOk();
+
+    expect(Order::first()->status->value)->toBe('cancelled');
+    $this->getJson('/api/actions?status=proposed', $headers)->assertJsonCount(0, 'data'); // the draft's own question closed too
+});
