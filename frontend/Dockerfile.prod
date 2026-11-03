@@ -26,6 +26,7 @@ RUN npm ci --omit=dev
 
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/next.config.mjs ./
+COPY --from=build /app/public ./public
 
 USER node
 
