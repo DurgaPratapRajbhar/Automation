@@ -22,6 +22,7 @@ function signupData(array $override = []): array
         'email' => 'ramesh@shop.test',
         'password' => 'a-long-password-1',
         'password_confirmation' => 'a-long-password-1',
+        'accepted_terms' => true,
         ...$override,
     ];
 }
@@ -39,6 +40,18 @@ function googleSays(array $claims = []): void
         ...$claims,
     ])]);
 }
+
+test('signing up needs the Terms and Privacy Policy to be accepted', function () {
+    $this->postJson('/api/auth/signup', signupData(['accepted_terms' => false]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('accepted_terms');
+
+    $this->postJson('/api/auth/signup', array_diff_key(signupData(), ['accepted_terms' => 1]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('accepted_terms');
+
+    expect(User::count())->toBe(0);
+});
 
 test('a shopkeeper signs up, gets a shop with a 7 day trial and can log in', function () {
     $response = $this->postJson('/api/auth/signup', signupData())

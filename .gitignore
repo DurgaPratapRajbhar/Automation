@@ -9,3 +9,6 @@ docs/postman/*.local.postman_environment.json
 
 # Local run of the production stack (test values)
 /docker-compose.prod.local.yml
+
+# Meta app-review screen recordings (large, not source code)
+/docs/app-review/

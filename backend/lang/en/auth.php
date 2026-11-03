@@ -6,6 +6,7 @@ return [
     'email_taken' => 'This email is already registered. Please log in.',
     'signed_up' => 'Account created. Your free trial has started.',
     'default_shop_name' => ":name's shop",
+    'terms_required' => 'Please accept the Terms of Service and Privacy Policy to continue.',
     'google_invalid' => 'Google sign-in could not be verified. Please try again.',
     'google_not_configured' => 'Google sign-in is not set up on the server yet.',
     'password_changed' => 'Password changed.',
