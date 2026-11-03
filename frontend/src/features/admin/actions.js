@@ -33,6 +33,19 @@ export async function updateWorkspace(workspaceId, previousState, formData) {
   return { message: data.message, success: true, values };
 }
 
+// Switch parts of the app on or off for a shop (the API needs the shop name with every edit)
+export async function updateWorkspaceModules(workspaceId, workspaceName, previousState, formData) {
+  const body = { workspace_name: workspaceName, modules: formData.getAll('modules') };
+  const { ok, data } = await backend(`admin/workspaces/${workspaceId}`, { method: 'PUT', body, admin: true });
+
+  if (!ok) return formError(data);
+
+  revalidatePath('/admin/workspaces');
+  revalidatePath(`/admin/workspaces/${workspaceId}`);
+
+  return { message: 'Features saved.', success: true };
+}
+
 // New password for one user of a shop (forgotten password). The passwords are never sent back to the form.
 export async function resetMemberPassword(workspaceId, userId, previousState, formData) {
   const values = formValues(formData);

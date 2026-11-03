@@ -3,6 +3,7 @@ import Alert from '@/components/ui/Alert';
 import PageHeader from '@/components/ui/PageHeader';
 import EditWorkspaceForm from '@/features/admin/EditWorkspaceForm';
 import MemberPasswordForm from '@/features/admin/MemberPasswordForm';
+import WorkspaceModulesForm from '@/features/admin/WorkspaceModulesForm';
 import { getWorkspace } from '@/features/admin/queries';
 
 export default async function EditWorkspacePage({ params }) {
@@ -20,6 +21,14 @@ export default async function EditWorkspacePage({ params }) {
         <PageHeader title={workspace.name} />
         <EditWorkspaceForm workspace={workspace} />
       </div>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Features for this shop</h2>
+        <p className="text-sm text-slate-600">
+          Tick what this shop can use. A new shop starts with Inbox, WhatsApp and Knowledge; switch on more when the customer asks.
+        </p>
+        <WorkspaceModulesForm workspace={workspace} />
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">People who can log in</h2>

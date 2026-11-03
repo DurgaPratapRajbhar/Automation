@@ -50,6 +50,18 @@ export default function Sidebar({ access }) {
             {item.label}
           </NavLink>
         ))}
+
+        {/* On a computer this link is in the top bar; on a phone it lives here */}
+        <NavLink
+          href="/features"
+          onClick={() => setOpen(false)}
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm md:hidden"
+          activeClassName="bg-emerald-50 font-semibold text-emerald-800 ring-1 ring-emerald-100"
+          inactiveClassName="font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          <Icon name="sparkle" size={19} />
+          Features
+        </NavLink>
       </nav>
     </aside>
   );
