@@ -43,15 +43,19 @@ export default function UserMenu({ access }) {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Profile menu"
-        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 ring-1 ring-slate-300 hover:bg-slate-100"
+        className="group flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 shadow-sm ring-1 ring-slate-200 transition hover:ring-2 hover:ring-fuchsia-300"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 via-violet-500 to-indigo-500 text-sm font-semibold text-white shadow-sm">
           {initial}
         </span>
         <span className="hidden text-left leading-tight sm:block">
           <span className="block text-sm font-medium">{roleName}</span>
         </span>
-        <Icon name="chevron" size={16} className="text-slate-500" />
+        <Icon
+          name="chevron"
+          size={16}
+          className={`text-violet-500 transition-transform group-hover:text-fuchsia-500 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
@@ -64,7 +68,7 @@ export default function UserMenu({ access }) {
           <div className="pt-2">
             {links.map((item) => (
               <Link key={item.href} href={item.href} role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
-                <Icon name={item.icon} size={18} className="text-slate-500" />
+                <Icon name={item.icon} size={18} className="text-violet-500" />
                 {item.label}
               </Link>
             ))}
