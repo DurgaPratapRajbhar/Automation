@@ -1,10 +1,8 @@
 <?php
 
 use App\Enums\WorkspaceModule;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -12,31 +10,6 @@ beforeEach(function () {
     $this->withoutMiddleware(ThrottleRequests::class);
     config(['trial.days' => 7]);
 });
-
-// A shopkeeper signs up by himself; returns the headers for his shop and the shop id
-function selfSignedUpShop(TestCase $test, string $email = 'ramesh@shop.test'): array
-{
-    $response = $test->postJson('/api/auth/signup', [
-        'name' => 'Ramesh',
-        'shop_name' => 'Ramesh Kirana',
-        'email' => $email,
-        'password' => 'a-long-password-1',
-        'password_confirmation' => 'a-long-password-1',
-        'accepted_terms' => true,
-    ])->assertCreated();
-
-    $shopId = $response->json('data.workspaces.0.id');
-
-    return [headersFor($response->json('data.access_token'), $shopId), $shopId];
-}
-
-function superAdminHeaders(): array
-{
-    $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password' => 'password123']);
-    $admin->forceFill(['is_super_admin' => true])->save();
-
-    return ['Authorization' => 'Bearer '.tokenFor($admin->id)];
-}
 
 test('a shop that signs up by itself starts with Inbox, WhatsApp and Knowledge only', function () {
     [$shop] = selfSignedUpShop($this);

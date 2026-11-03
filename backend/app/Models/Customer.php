@@ -16,6 +16,8 @@ class Customer extends Model
         'state_code',
         'credit_limit',
         'whatsapp_opt_in',
+        'data',
+        'opted_out_at',
     ];
 
     protected function casts(): array
@@ -23,6 +25,8 @@ class Customer extends Model
         return [
             'credit_limit' => 'decimal:2',
             'whatsapp_opt_in' => 'boolean',
+            'data' => 'array',
+            'opted_out_at' => 'datetime',
         ];
     }
 

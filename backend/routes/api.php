@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminWorkspaceController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\ContactImportController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\EmbeddedSignupController;
@@ -93,6 +94,14 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         Route::get('/customers/{customerId}', [CustomerController::class, 'show'])->name('customers.show');
         Route::put('/customers/{customerId}', [CustomerController::class, 'update'])->name('customers.update');
         Route::delete('/customers/{customerId}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+        // Upload an Excel/CSV of people (campaign module). Permissions: contact-imports.preview / contact-imports.create
+        Route::post('/contact-imports/preview', [ContactImportController::class, 'preview'])
+            ->middleware('throttle:20,1')
+            ->name('contact-imports.preview');
+        Route::post('/contact-imports', [ContactImportController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('contact-imports.create');
 
         Route::get('/knowledge-sources', [KnowledgeSourceController::class, 'index'])->name('knowledge-sources.index');
         Route::post('/knowledge-sources', [KnowledgeSourceController::class, 'store'])->name('knowledge-sources.store');

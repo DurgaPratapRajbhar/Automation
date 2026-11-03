@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Services\JwtService;
 use Tests\TestCase;
 
@@ -47,7 +48,7 @@ expect()->extend('toBeOne', function () {
 // Super admin creates a shop with a new owner, then the owner logs in
 function registerOwner(TestCase $test, string $email = 'owner@example.com'): array
 {
-    $admin = App\Models\User::firstOrCreate(
+    $admin = User::firstOrCreate(
         ['email' => 'setup-admin@example.com'],
         ['name' => 'Setup Admin', 'password' => 'password123']
     );
@@ -107,4 +108,29 @@ function memberWithPermissions(TestCase $test, array $owner, string $roleName, a
         'user_id' => $userId,
         'role_id' => $roleId,
     ];
+}
+
+// A business signs up by itself (starts with the starter modules); returns the headers for it and its id
+function selfSignedUpShop(TestCase $test, string $email = 'ramesh@shop.test'): array
+{
+    $response = $test->postJson('/api/auth/signup', [
+        'name' => 'Ramesh',
+        'shop_name' => 'Ramesh Kirana',
+        'email' => $email,
+        'password' => 'a-long-password-1',
+        'password_confirmation' => 'a-long-password-1',
+        'accepted_terms' => true,
+    ])->assertCreated();
+
+    $shopId = $response->json('data.workspaces.0.id');
+
+    return [headersFor($response->json('data.access_token'), $shopId), $shopId];
+}
+
+function superAdminHeaders(): array
+{
+    $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password' => 'password123']);
+    $admin->forceFill(['is_super_admin' => true])->save();
+
+    return ['Authorization' => 'Bearer '.tokenFor($admin->id)];
 }

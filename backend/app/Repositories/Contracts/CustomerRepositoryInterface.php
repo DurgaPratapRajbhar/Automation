@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\Customer;
 use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Support\Collection;
 
 interface CustomerRepositoryInterface
 {
@@ -19,5 +20,8 @@ interface CustomerRepositoryInterface
     public function delete(Customer $customer): void;
 
     // One phone number per customer within a workspace
+    // Customers of the workspace with any of these phone numbers, keyed by phone
+    public function findByPhones(int $workspaceId, array $phones): Collection;
+
     public function phoneExists(int $workspaceId, string $phone, ?int $ignoreCustomerId = null): bool;
 }

@@ -14,6 +14,7 @@ enum WorkspaceModule: string
     case Knowledge = 'knowledge';
     case Customers = 'customers';
     case Team = 'team';
+    case Campaigns = 'campaigns';
 
     // What a shop that signs up by itself starts with
     public static function starter(): array
@@ -35,6 +36,7 @@ enum WorkspaceModule: string
             self::Knowledge => ['knowledge-sources'],
             self::Customers => ['customers'],
             self::Team => ['members', 'roles'],
+            self::Campaigns => ['contact-imports'],
         };
     }
 

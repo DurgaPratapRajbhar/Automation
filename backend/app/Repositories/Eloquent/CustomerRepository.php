@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Customer;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
 use Illuminate\Contracts\Pagination\CursorPaginator;
+use Illuminate\Support\Collection;
 
 class CustomerRepository implements CustomerRepositoryInterface
 {
@@ -47,6 +48,14 @@ class CustomerRepository implements CustomerRepositoryInterface
     public function delete(Customer $customer): void
     {
         $customer->delete();
+    }
+
+    public function findByPhones(int $workspaceId, array $phones): Collection
+    {
+        return Customer::where('workspace_id', $workspaceId)
+            ->whereIn('phone', $phones)
+            ->get()
+            ->keyBy('phone');
     }
 
     public function phoneExists(int $workspaceId, string $phone, ?int $ignoreCustomerId = null): bool
