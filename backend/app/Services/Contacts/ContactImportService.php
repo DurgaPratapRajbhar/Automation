@@ -114,6 +114,7 @@ class ContactImportService
                     // Someone who asked us to stop is never switched back on by an upload
                     if ($consent && ! $customer->opted_out_at) {
                         $changes['whatsapp_opt_in'] = true;
+                        $changes['whatsapp_opt_in_source'] ??= $customer->whatsapp_opt_in ? $customer->whatsapp_opt_in_source : 'import';
                     }
 
                     $this->customers->update($customer, $changes);
@@ -128,6 +129,7 @@ class ContactImportService
                     'phone' => $phone,
                     'data' => $person['data'] ?: null,
                     'whatsapp_opt_in' => $consent,
+                    'whatsapp_opt_in_source' => $consent ? 'import' : null,
                 ]);
                 $created++;
             }

@@ -10,10 +10,16 @@ interface MessageRepositoryInterface
 {
     public function find(int $id): ?Message;
 
+    // A message of this chat, only if the chat belongs to the workspace
+    public function findInConversation(int $workspaceId, int $conversationId, int $messageId): ?Message;
+
     // Chat screen: last $limit messages, oldest first
     public function forConversation(int $conversationId, int $limit): Collection;
 
     // When the customer last wrote (starts WhatsApp's 24-hour reply window)
+    // The customer wrote before this message in the same chat
+    public function hasEarlierInbound(int $conversationId, int $messageId): bool;
+
     public function lastInboundAt(int $conversationId): ?CarbonInterface;
 
     public function create(array $data): Message;

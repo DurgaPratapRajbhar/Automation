@@ -12,6 +12,7 @@ export default function CustomerTable({ customers }) {
           <tr>
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Phone</th>
+            <th className="px-4 py-3">Offers allowed</th>
             <th className="px-4 py-3">GSTIN</th>
             <th className="px-4 py-3">Credit limit</th>
           </tr>
@@ -23,6 +24,9 @@ export default function CustomerTable({ customers }) {
                 <Link href={`/customers/${customer.id}`} className="font-medium hover:underline">{customer.name}</Link>
               </td>
               <td className="px-4 py-3">{customer.phone ?? '-'}</td>
+              <td className="px-4 py-3">
+                {customer.whatsapp_opt_in ? `Yes, ${customer.whatsapp_opt_in_source} (${new Date(customer.whatsapp_opt_in_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })})` : 'No'}
+              </td>
               <td className="px-4 py-3">{customer.gstin ?? '-'}</td>
               <td className="px-4 py-3">{customer.credit_limit ? `₹${customer.credit_limit}` : '-'}</td>
             </tr>

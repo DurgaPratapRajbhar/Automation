@@ -7,6 +7,7 @@ use App\Enums\RecipientStatus;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
 use App\Repositories\Contracts\CampaignRepositoryInterface;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,19 @@ class CampaignRepository implements CampaignRepositoryInterface
     public function cursorForWorkspace(int $workspaceId, int $perPage): CursorPaginator
     {
         return Campaign::where('workspace_id', $workspaceId)->orderByDesc('id')->cursorPaginate($perPage);
+    }
+
+    public function sentSince(int $workspaceId, CarbonInterface $since): int
+    {
+        return CampaignRecipient::where('status', RecipientStatus::Sent->value)
+            ->where('updated_at', '>=', $since)
+            ->whereHas('campaign', fn ($query) => $query->where('workspace_id', $workspaceId))
+            ->count();
+    }
+
+    public function countByStatus(int $workspaceId, CampaignStatus $status): int
+    {
+        return Campaign::where('workspace_id', $workspaceId)->where('status', $status->value)->count();
     }
 
     public function setStatus(Campaign $campaign, CampaignStatus $status): void

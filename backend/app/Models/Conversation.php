@@ -15,6 +15,9 @@ class Conversation extends Model
         'customer_phone',
         'customer_name',
         'customer_language',
+        'lead_status',
+        'lead_answers',
+        'lead_summary',
         'status',
         'unread_count',
         'last_message_at',
@@ -22,7 +25,7 @@ class Conversation extends Model
 
     protected function casts(): array
     {
-        return ['last_message_at' => 'datetime', 'unread_count' => 'integer'];
+        return ['last_message_at' => 'datetime', 'unread_count' => 'integer', 'lead_answers' => 'array'];
     }
 
     public function channel(): BelongsTo

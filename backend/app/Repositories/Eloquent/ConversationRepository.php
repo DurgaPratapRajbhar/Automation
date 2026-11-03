@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Enums\LeadStatus;
 use App\Models\Conversation;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use Illuminate\Contracts\Pagination\CursorPaginator;
@@ -65,6 +66,21 @@ class ConversationRepository implements ConversationRepositoryInterface
     public function setCustomerLanguage(Conversation $conversation, string $language): void
     {
         $conversation->update(['customer_language' => $language]);
+    }
+
+    public function setLead(Conversation $conversation, string $status, array $answers, ?string $summary): void
+    {
+        $conversation->update(['lead_status' => $status, 'lead_answers' => $answers, 'lead_summary' => $summary]);
+    }
+
+    public function countHotLeads(int $workspaceId): int
+    {
+        return Conversation::where('workspace_id', $workspaceId)->where('lead_status', LeadStatus::Hot->value)->count();
+    }
+
+    public function countUnread(int $workspaceId): int
+    {
+        return Conversation::where('workspace_id', $workspaceId)->where('unread_count', '>', 0)->count();
     }
 
     public function touchLastMessage(Conversation $conversation): void

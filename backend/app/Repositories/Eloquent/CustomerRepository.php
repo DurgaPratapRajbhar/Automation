@@ -33,7 +33,8 @@ class CustomerRepository implements CustomerRepositoryInterface
 
     public function create(array $data): Customer
     {
-        return Customer::create($data);
+        // refreshed: the database fills in the defaults (no permission yet = false)
+        return Customer::create($data)->refresh();
     }
 
     public function update(Customer $customer, array $data): Customer
@@ -64,6 +65,11 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->when($ids !== null, fn ($query) => $query->whereIn('id', $ids))
             ->orderBy('id')
             ->get();
+    }
+
+    public function countForWorkspace(int $workspaceId): int
+    {
+        return Customer::where('workspace_id', $workspaceId)->count();
     }
 
     public function findByPhone(int $workspaceId, string $phone): ?Customer

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { customerLabel, formatTime } from '@/features/shop/inbox/format';
+import LeadBadge from '@/features/shop/leads/LeadBadge';
 
 function lastLine(message) {
   if (!message) return '';
@@ -20,7 +21,10 @@ export default function ConversationList({ conversations }) {
           <Link href={`/inbox/${conversation.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-3">
-                <p className={`truncate ${conversation.unread_count ? 'font-semibold' : 'font-medium'}`}>{customerLabel(conversation)}</p>
+                <p className={`flex items-center gap-2 truncate ${conversation.unread_count ? 'font-semibold' : 'font-medium'}`}>
+                  <span className="truncate">{customerLabel(conversation)}</span>
+                  <LeadBadge status={conversation.lead_status} />
+                </p>
                 <span className="shrink-0 text-xs text-slate-500">{formatTime(conversation.last_message_at)}</span>
               </div>
               <p className="truncate text-sm text-slate-500">{lastLine(conversation.last_message)}</p>

@@ -1,3 +1,4 @@
+import TranslateButton from '@/features/shop/inbox/TranslateButton';
 import { formatTime } from '@/features/shop/inbox/format';
 
 // WhatsApp-style ticks for our messages, as Meta reports them
@@ -18,7 +19,7 @@ function Status({ message }) {
 }
 
 // Customer on the left, shop (bot or staff) on the right
-function Bubble({ message }) {
+function Bubble({ message, conversationId }) {
   const mine = message.direction === 'outbound';
   const who = mine ? (message.is_ai ? 'Bot' : message.sent_by || 'Staff') : null;
 
@@ -29,6 +30,9 @@ function Bubble({ message }) {
           <p className={`mb-0.5 text-xs font-semibold ${message.is_ai ? 'text-emerald-700' : 'text-slate-300'}`}>{who}</p>
         )}
         <p className="whitespace-pre-wrap break-words">{message.body ?? `[${message.type}]`}</p>
+        {!mine && message.body && message.language === null && message.translation === null && (
+          <TranslateButton conversationId={conversationId} messageId={message.id} />
+        )}
         {message.translation && (
           <p className={`mt-1 whitespace-pre-wrap break-words border-t pt-1 text-xs ${mine && !message.is_ai ? 'border-slate-600 text-slate-300' : 'border-slate-200 text-slate-500'}`}>
             <span className="font-semibold">{mine ? 'You wrote: ' : 'Translation: '}</span>
@@ -47,13 +51,13 @@ function Bubble({ message }) {
   );
 }
 
-export default function ChatThread({ messages }) {
+export default function ChatThread({ messages, conversationId }) {
   if (messages.length === 0) return <p className="text-slate-500">No messages.</p>;
 
   return (
     <div className="space-y-2 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
       {messages.map((message) => (
-        <Bubble key={message.id} message={message} />
+        <Bubble key={message.id} message={message} conversationId={conversationId} />
       ))}
     </div>
   );

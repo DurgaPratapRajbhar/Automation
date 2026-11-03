@@ -4,6 +4,7 @@ use App\Models\RefreshToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -12,7 +13,7 @@ beforeEach(function () {
 });
 
 // A super admin token plus one shop made through the admin API; returns [admin headers, shop id, owner user id]
-function shopWithOwner(\Tests\TestCase $test, string $ownerEmail = 'owner@shop.test'): array
+function shopWithOwner(TestCase $test, string $ownerEmail = 'owner@shop.test'): array
 {
     $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password' => 'password123']);
     $admin->forceFill(['is_super_admin' => true])->save();

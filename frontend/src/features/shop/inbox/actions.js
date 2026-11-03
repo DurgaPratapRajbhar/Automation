@@ -4,35 +4,30 @@ import { revalidatePath } from 'next/cache';
 import { backend } from '@/lib/backend';
 import { formError } from '@/lib/forms';
 
-export async function sendReply(conversationId, previousState, formData) {
-  const body = formData.get('body') ?? '';
-  const { ok, data } = await backend(`conversations/${conversationId}/messages`, { method: 'POST', body: { body } });
-
-  if (!ok) return formError(data, { body });
-
-  revalidatePath(`/inbox/${conversationId}`);
-  revalidatePath('/inbox');
-
-  // A failed WhatsApp send is still saved; tell the user
-  return data.data.status === 'failed' ? { message: data.message } : { sent: Date.now() };
-}
-
-// The language bridge: look at the reply in the customer's language before it goes
-export async function translateReply(conversationId, text) {
-  const { ok, data } = await backend(`conversations/${conversationId}/translate`, { method: 'POST', body: { text } });
+// Look at a reply in another language before it goes (the customer's language unless `to` is given)
+export async function translateReply(conversationId, text, to) {
+  const { ok, data } = await backend(`conversations/${conversationId}/translate`, { method: 'POST', body: { text, to } });
 
   return ok ? { translation: data.data } : { message: data.errors?.text?.[0] ?? data.message };
 }
 
-// Sends the translated text; the owner's own words are kept with it
-export async function sendTranslatedReply(conversationId, { body, original, language }) {
-  const { ok, data } = await backend(`conversations/${conversationId}/messages`, { method: 'POST', body: { body, original, language } });
+// "Translate" on one message: it is shown in the Inbox language
+export async function translateMessage(conversationId, messageId) {
+  const { ok, data } = await backend(`conversations/${conversationId}/messages/${messageId}/translate`, { method: 'POST' });
+
+  return ok ? {} : { message: data.message };
+}
+
+// Sends a reply as it is, or in another language with what the owner wrote kept beside it ({ body, original, language })
+export async function sendReply(conversationId, reply) {
+  const { ok, data } = await backend(`conversations/${conversationId}/messages`, { method: 'POST', body: reply });
 
   if (!ok) return { message: data.errors?.body?.[0] ?? data.message };
 
   revalidatePath(`/inbox/${conversationId}`);
   revalidatePath('/inbox');
 
+  // A failed WhatsApp send is still saved; tell the user
   return data.data.status === 'failed' ? { message: data.message } : { sent: true };
 }
 

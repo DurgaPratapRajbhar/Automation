@@ -27,5 +27,13 @@ interface ConversationRepositoryInterface
 
     public function setCustomerLanguage(Conversation $conversation, string $language): void;
 
+    // What the Sales agent found out about this person
+    public function setLead(Conversation $conversation, string $status, array $answers, ?string $summary): void;
+
+    // Chats the Sales agent scored hot, and chats with messages nobody has read
+    public function countHotLeads(int $workspaceId): int;
+
+    public function countUnread(int $workspaceId): int;
+
     public function touchLastMessage(Conversation $conversation): void;
 }

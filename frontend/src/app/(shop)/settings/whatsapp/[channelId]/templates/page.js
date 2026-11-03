@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Alert from '@/components/ui/Alert';
-import TemplateForm from '@/features/shop/whatsapp/templates/TemplateForm';
+import TemplateCreator from '@/features/shop/whatsapp/templates/TemplateCreator';
 import TemplateList from '@/features/shop/whatsapp/templates/TemplateList';
 import { createTemplate } from '@/features/shop/whatsapp/templates/actions';
 import { getChannel, getTemplates } from '@/features/shop/whatsapp/templates/queries';
@@ -29,7 +29,9 @@ export default async function TemplatesPage({ params }) {
         ? <TemplateList channelId={channelId} templates={templates.data.data} canDelete={await can('templates.delete')} />
         : <Alert message={templates.data.message} />}
 
-      {(await can('templates.create')) && <TemplateForm action={createTemplate.bind(null, channelId)} />}
+      {(await can('templates.create')) && (
+        <TemplateCreator action={createTemplate.bind(null, channelId)} canDraft={await can('campaign-drafts.create')} />
+      )}
     </div>
   );
 }

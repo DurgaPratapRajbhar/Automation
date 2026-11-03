@@ -2,6 +2,13 @@
 
 return [
     'owner_role_name' => 'Owner',
+    'groups' => [
+        'actions' => 'Approvals (what the assistants ask)',
+        'overview' => 'Dashboard numbers',
+        'campaign-drafts' => 'Write campaign messages with AI',
+        'orders' => 'Orders and bookings',
+        'contact-imports' => 'Import contacts',
+    ],
     'module_off' => 'This feature is not switched on for your business. Please ask ScriptDP to enable it.',
     'trial_ended' => 'Your free trial has ended. Message ScriptDP on WhatsApp :phone to continue.',
     'cannot_grant' => 'You cannot grant permissions you do not have: :permissions',

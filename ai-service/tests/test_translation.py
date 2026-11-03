@@ -16,6 +16,10 @@ class ParseTest(unittest.TestCase):
             {"translation": "Namaste, aap kaise hain?", "language": "en"},
         )
 
+    def test_the_original_language_key_is_read(self):
+        reply = '{"original_language": "en", "translation": "नमस्ते"}'
+        self.assertEqual(parse(reply), {"translation": "नमस्ते", "language": "en"})
+
     def test_json_in_a_code_fence(self):
         reply = '```json\n{"translation": "नमस्ते", "language": "EN"}\n```'
         self.assertEqual(parse(reply), {"translation": "नमस्ते", "language": "en"})

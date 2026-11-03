@@ -7,6 +7,7 @@ use App\Services\InboundMessageService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -47,7 +48,7 @@ function statusChat(array $owner): int
 }
 
 // Meta's status webhook, signed like the real one
-function metaReports(\Tests\TestCase $test, string $wamid, string $status, array $errors = []): void
+function metaReports(TestCase $test, string $wamid, string $status, array $errors = []): void
 {
     $body = json_encode(['entry' => [['changes' => [['value' => [
         'metadata' => ['phone_number_id' => 'PN700'],

@@ -3,10 +3,10 @@
 namespace App\Listeners;
 
 use App\Events\MessageReceived;
-use App\Services\AiReplyService;
+use App\Services\Agents\AgentRouter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-// Background me chalta hai (queue worker): AI reply banao aur bhejo
+// Background me chalta hai (queue worker): the right agent answers the customer
 class GenerateAiReply implements ShouldQueue
 {
     // AI/WhatsApp down ho to retry
@@ -15,11 +15,11 @@ class GenerateAiReply implements ShouldQueue
     public array $backoff = [10, 60];
 
     public function __construct(
-        private AiReplyService $aiReplyService
+        private AgentRouter $agents
     ) {}
 
     public function handle(MessageReceived $event): void
     {
-        $this->aiReplyService->replyTo($event->messageId);
+        $this->agents->replyTo($event->messageId);
     }
 }

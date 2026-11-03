@@ -13,7 +13,8 @@ class AiUsageService
         private WorkspaceRepositoryInterface $workspaceRepository
     ) {}
 
-    public function allowed(int $workspaceId): bool
+    // $counts = false: only check, do not use up one of today's answers (a helper that runs beside the reply)
+    public function allowed(int $workspaceId, bool $counts = true): bool
     {
         $workspace = $this->workspaceRepository->findById($workspaceId);
 
@@ -28,6 +29,6 @@ class AiUsageService
         $key = "ai-answers:{$workspace->id}:".now()->format('Y-m-d');
         Cache::add($key, 0, now()->endOfDay());
 
-        return Cache::increment($key) <= config('trial.ai_daily_limit');
+        return ($counts ? Cache::increment($key) : Cache::get($key, 0) + 1) <= config('trial.ai_daily_limit');
     }
 }

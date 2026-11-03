@@ -24,6 +24,13 @@ class WorkspaceRepository implements WorkspaceRepositoryInterface
         return Workspace::find($workspaceId);
     }
 
+    public function allActive(): Collection
+    {
+        return Workspace::where('status', WorkspaceStatus::Active->value)
+            ->where(fn ($query) => $query->whereNull('trial_ends_at')->orWhere('trial_ends_at', '>', now()))
+            ->get();
+    }
+
     public function findByApiKeyHash(string $hash): ?Workspace
     {
         return Workspace::where('api_key_hash', $hash)->first();

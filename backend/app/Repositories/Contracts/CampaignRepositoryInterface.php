@@ -5,6 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Support\Collection;
 
@@ -37,4 +38,10 @@ interface CampaignRepositoryInterface
 
     // Counts for the report: total, queued, sent, delivered, read, replied, failed, skipped
     public function report(Campaign $campaign): array;
+
+    // Messages of the business's campaigns that were sent since this time
+    public function sentSince(int $workspaceId, CarbonInterface $since): int;
+
+    // How many campaigns are in this status
+    public function countByStatus(int $workspaceId, CampaignStatus $status): int;
 }

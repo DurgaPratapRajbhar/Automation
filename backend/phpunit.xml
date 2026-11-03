@@ -28,6 +28,7 @@
         <server name="DB_DATABASE" value=":memory:" force="true"/>
         <server name="DB_URL" value="" force="true"/>
         <server name="CAMPAIGN_ONLY_SEND_TO" value="" force="true"/>
+        <server name="META_GRAPH_URL" value="https://graph.facebook.com" force="true"/>
         <server name="MAIL_MAILER" value="array" force="true"/>
         <server name="QUEUE_CONNECTION" value="sync" force="true"/>
         <server name="SESSION_DRIVER" value="array" force="true"/>

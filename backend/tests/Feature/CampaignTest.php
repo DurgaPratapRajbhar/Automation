@@ -309,6 +309,7 @@ test('the same message is never sent twice to a person, even if the job runs aga
 
 test('a person writing STOP or BAND KARO is opted out of campaigns', function (string $text, bool $optedOut) {
     [, , , $people] = campaignBusiness($this);
+    fakeMetaForCampaigns();
 
     app(InboundMessageService::class)->handle([
         'metadata' => ['phone_number_id' => '444000111'],

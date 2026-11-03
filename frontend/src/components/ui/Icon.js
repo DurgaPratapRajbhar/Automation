@@ -83,6 +83,30 @@ const PATHS = {
       <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
     </>
   ),
+  receipt: (
+    <>
+      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+      <path d="M9 8h6M9 12h6" />
+    </>
+  ),
+  check: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 3 3 5-6" />
+    </>
+  ),
+  box: (
+    <>
+      <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+      <path d="m3 8 9 5 9-5M12 13v8" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 11h18" />
+    </>
+  ),
   arrow: (
     <>
       <path d="M5 12h14" />

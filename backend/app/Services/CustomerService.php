@@ -96,6 +96,8 @@ class CustomerService
             'state_code' => $customer->state_code,
             'credit_limit' => $customer->credit_limit,
             'whatsapp_opt_in' => $customer->whatsapp_opt_in,
+            'whatsapp_opt_in_at' => $customer->whatsapp_opt_in_at,
+            'whatsapp_opt_in_source' => $customer->whatsapp_opt_in_source,
             'created_at' => $customer->created_at,
             'updated_at' => $customer->updated_at,
         ];

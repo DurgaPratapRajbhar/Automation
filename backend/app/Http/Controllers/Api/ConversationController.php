@@ -64,6 +64,17 @@ class ConversationController extends Controller
         ], 201);
     }
 
+    // "Translate" on one message: it is shown in the Inbox language
+    public function translateMessage(Request $request, int $conversationId, int $messageId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->translation->translateMessage($workspace->id, $conversationId, $messageId),
+        ]);
+    }
+
     // Look at the reply in the customer's language before sending it
     public function translate(TranslateReplyRequest $request, int $conversationId): JsonResponse
     {

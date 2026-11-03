@@ -2,10 +2,10 @@ import Link from 'next/link';
 import Alert from '@/components/ui/Alert';
 import AutoRefresh from '@/components/ui/AutoRefresh';
 import ChatThread from '@/features/shop/inbox/ChatThread';
-import LanguageBridgeReply from '@/features/shop/inbox/LanguageBridgeReply';
 import ReplyForm from '@/features/shop/inbox/ReplyForm';
+import LeadCard from '@/features/shop/leads/LeadCard';
 import TemplateSender from '@/features/shop/inbox/TemplateSender';
-import { sendReply, sendTemplateMessage } from '@/features/shop/inbox/actions';
+import { sendTemplateMessage } from '@/features/shop/inbox/actions';
 import { customerLabel } from '@/features/shop/inbox/format';
 import { getConversation } from '@/features/shop/inbox/queries';
 import { getTemplates } from '@/features/shop/whatsapp/templates/queries';
@@ -20,11 +20,11 @@ export default async function ConversationPage({ params }) {
   const conversation = data.data;
   const canTemplate = await can('messages.template');
 
-  // The customer writes in another language than the business reads: replies can go through the language bridge
+  // Replies can go out in any language; the customer's is preselected when it is known and not the business's own
   const { data: access } = await getWorkspaceAccess();
   const customerLanguage = conversation.customer_language;
-  const bridge = customerLanguage && customerLanguage !== access.data.workspace.inbox_language && access.data.languages[customerLanguage]
-    ? { customerLanguageName: access.data.languages[customerLanguage] }
+  const defaultLanguage = customerLanguage !== access.data.workspace.inbox_language && access.data.languages[customerLanguage]
+    ? customerLanguage
     : null;
 
   // Only approved templates can be sent
@@ -41,7 +41,9 @@ export default async function ConversationPage({ params }) {
         <p className="text-sm text-slate-500">+{conversation.customer_phone}</p>
       </div>
 
-      <ChatThread messages={conversation.messages} />
+      <LeadCard conversation={conversation} />
+
+      <ChatThread messages={conversation.messages} conversationId={conversation.id} />
 
       {!conversation.window_open && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200">
@@ -56,9 +58,7 @@ export default async function ConversationPage({ params }) {
       )}
 
       {(await can('messages.create')) && (
-        bridge
-          ? <LanguageBridgeReply conversationId={conversation.id} bridge={bridge} />
-          : <ReplyForm action={sendReply.bind(null, conversation.id)} />
+        <ReplyForm conversationId={conversation.id} languages={access.data.languages} defaultLanguage={defaultLanguage} />
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import date
 
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -6,6 +7,10 @@ from pydantic import BaseModel
 
 from app import db, indexing
 from app.agent import answer_question
+from app.agents.finance import find_promises
+from app.agents.marketing import draft as marketing_draft
+from app.agents.operations import respond as operations_respond
+from app.agents.sales import qualify
 from app.config import settings
 from app.extraction import UnreadableFile, clean_text, extract_text
 from app.translation import translate
@@ -36,6 +41,44 @@ class AskRequest(BaseModel):
 class TranslateRequest(BaseModel):
     text: str
     target: str  # the language's name in English, e.g. "Hindi"
+
+
+class PromisesRequest(BaseModel):
+    transcript: str  # the last messages, one line per message
+    today: date  # in the business's time zone
+
+
+class ProductLine(BaseModel):
+    id: int
+    name: str
+    price: str
+    unit: str | None = None
+    stock: int | None = None  # None = not counted
+
+
+class OperationsRequest(BaseModel):
+    products: list[ProductLine]
+    transcript: str  # the chat so far, one line per message
+    today: date  # in the business's time zone
+    needs_address: bool = False  # the business delivers: the agent must get the address
+    booking_rules: str | None = None  # hours, closed days and taken times, when the business takes bookings
+
+
+class MarketingProduct(BaseModel):
+    name: str
+    price: str
+    unit: str | None = None
+
+
+class CampaignDraftRequest(BaseModel):
+    business: str
+    products: list[MarketingProduct]
+    brief: str  # what the owner wants to say, in a few words
+
+
+class QualifyRequest(BaseModel):
+    questions: list[str]
+    transcript: str  # the chat so far, one line per message
 
 
 @app.get("/health")
@@ -105,3 +148,47 @@ async def ask(request: AskRequest):
 @app.post("/translate")
 async def translate_message(request: TranslateRequest):
     return await translate(request.text, request.target)
+
+
+# The Sales agent: next message to a new lead + what they have answered so far
+@app.post("/qualify")
+async def qualify_lead(request: QualifyRequest):
+    result = await qualify(request.questions, request.transcript)
+
+    if result is None:
+        raise HTTPException(status_code=502, detail="The model gave no usable answer")
+
+    return result
+
+
+# The Finance agent: promises with a date that the customer made in the chat
+@app.post("/promises")
+async def promises(request: PromisesRequest):
+    found = await find_promises(request.transcript, request.today)
+
+    if found is None:
+        raise HTTPException(status_code=502, detail="The model gave no usable answer")
+
+    return {"promises": found}
+
+
+# The Operations agent: price, availability, orders and bookings from the real product list
+@app.post("/operations")
+async def operations(request: OperationsRequest):
+    result = await operations_respond([p.model_dump() for p in request.products], request.transcript, request.today, request.needs_address, request.booking_rules)
+
+    if result is None:
+        raise HTTPException(status_code=502, detail="The model gave no usable answer")
+
+    return result
+
+
+# The Marketing agent: an offer message written from the owner's few words and the real products
+@app.post("/campaign-draft")
+async def campaign_draft(request: CampaignDraftRequest):
+    result = await marketing_draft(request.business, [p.model_dump() for p in request.products], request.brief)
+
+    if result is None:
+        raise HTTPException(status_code=502, detail="The model gave no usable answer")
+
+    return result

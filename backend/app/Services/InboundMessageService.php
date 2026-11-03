@@ -6,9 +6,11 @@ use App\Events\MessageReceived;
 use App\Repositories\Contracts\ChannelRepositoryInterface;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\MessageRepositoryInterface;
-use App\Services\Contacts\OptOutService;
+use App\Services\Agents\BotMessageService;
+use App\Services\Contacts\ConsentService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 
 class InboundMessageService
 {
@@ -16,7 +18,8 @@ class InboundMessageService
         private ChannelRepositoryInterface $channels,
         private ConversationRepositoryInterface $conversations,
         private MessageRepositoryInterface $messages,
-        private OptOutService $optOut,
+        private ConsentService $consent,
+        private BotMessageService $bot,
     ) {}
 
     /**
@@ -83,10 +86,26 @@ class InboundMessageService
             return;
         }
 
-        // 5) "STOP" / "BAND": no more campaign messages to this person
-        $this->optOut->recordIfStop($message->workspace_id, $incoming['from'], $incoming['text']['body'] ?? null);
+        // 5) "STOP" / "BAND": no more campaign messages to this person; "START": they agree to get offers. Both get a fixed answer.
+        $answer = $this->consent->handle($message->workspace_id, $incoming['from'], $incoming['text']['body'] ?? null, $value['contacts'][0]['profile']['name'] ?? null);
 
-        // 6) Ring the bell — AI reply, notifications etc. will listen (next steps)
+        if ($answer) {
+            // A fixed confirmation (WhatsApp expects one); the AI is not asked about it
+            $this->bot->send($this->conversations->find($message->conversation_id), __("consent.{$answer}"));
+
+            return;
+        }
+
+        // 6) A flood from one chat is saved but not answered
+        $limit = "agents:{$message->conversation_id}";
+
+        if (RateLimiter::tooManyAttempts($limit, config('operations.chat_messages_per_minute'))) {
+            return;
+        }
+
+        RateLimiter::hit($limit, 60);
+
+        // 7) Ring the bell — AI reply, notifications etc. will listen (next steps)
         MessageReceived::dispatch(
             $message->workspace_id,
             $message->conversation_id,

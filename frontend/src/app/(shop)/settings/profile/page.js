@@ -1,5 +1,7 @@
 import Alert from '@/components/ui/Alert';
 import PageHeader from '@/components/ui/PageHeader';
+import LeadQuestionsForm from '@/features/shop/leads/LeadQuestionsForm';
+import OrderSettingsForm from '@/features/shop/orders/OrderSettingsForm';
 import ProfileForm from '@/features/shop/profile/ProfileForm';
 import { getProfile } from '@/features/shop/profile/queries';
 import ApiKeyCard from '@/features/shop/website/ApiKeyCard';
@@ -18,6 +20,16 @@ export default async function ProfilePage() {
       <div>
         <PageHeader title="Business profile" />
         <ProfileForm profile={data.data} canEdit={await can('workspace.edit')} />
+      </div>
+
+      <div>
+        <PageHeader title="New customers: my questions" />
+        <LeadQuestionsForm profile={data.data} canEdit={await can('workspace.edit')} />
+      </div>
+
+      <div>
+        <PageHeader title="Orders and alerts" />
+        <OrderSettingsForm profile={data.data} canEdit={await can('workspace.edit')} />
       </div>
 
       {apiKey?.ok && (

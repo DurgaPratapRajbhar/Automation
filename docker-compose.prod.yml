@@ -59,6 +59,20 @@ services:
     depends_on:
       - backend
 
+  # Runs the daily jobs (agents:propose-*) at their times
+  scheduler:
+    image: scriptdp-backend
+    pull_policy: never
+    restart: unless-stopped
+    user: www-data
+    env_file:
+      - ./backend/.env
+    command: sh -c "php artisan config:cache && php artisan schedule:work"
+    volumes:
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      - backend
+
   frontend:
     build:
       context: ./frontend

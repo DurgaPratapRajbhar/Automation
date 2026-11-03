@@ -4,6 +4,7 @@ use App\Models\Workspace;
 use App\Services\Contracts\AiResponderInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -25,7 +26,7 @@ function fakeAi(?string $answer = 'Haan, delivery free hai.'): void
     });
 }
 
-function newApiKey(\Tests\TestCase $test, array $owner): string
+function newApiKey(TestCase $test, array $owner): string
 {
     return $test->postJson('/api/workspace/api-key', [], headersFor($owner['token'], $owner['workspace_id']))
         ->assertCreated()

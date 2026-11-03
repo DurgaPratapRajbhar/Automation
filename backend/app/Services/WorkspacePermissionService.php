@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Workspace;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 
 /**
@@ -96,7 +97,8 @@ class WorkspacePermissionService
             ->groupBy('module')
             ->map(fn ($permissions, $module) => [
                 'module' => $module,
-                'label' => Str::headline($module),
+                // A plain name where the technical one would not mean much to a shop owner (lang/rbac.php, 'groups')
+                'label' => Lang::has("rbac.groups.{$module}") ? __("rbac.groups.{$module}") : Str::headline($module),
                 'permissions' => $permissions->map(fn (Permission $permission) => [
                     'name' => $permission->name,
                     'label' => Str::headline(Str::afterLast($permission->name, '.')),

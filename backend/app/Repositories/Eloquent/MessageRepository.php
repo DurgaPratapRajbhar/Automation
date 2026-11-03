@@ -31,6 +31,11 @@ class MessageRepository implements MessageRepositoryInterface
         return Message::create($data);
     }
 
+    public function hasEarlierInbound(int $conversationId, int $messageId): bool
+    {
+        return Message::where('conversation_id', $conversationId)->where('direction', 'inbound')->where('id', '<', $messageId)->exists();
+    }
+
     public function lastInboundAt(int $conversationId): ?CarbonInterface
     {
         return Message::where('conversation_id', $conversationId)
@@ -43,6 +48,11 @@ class MessageRepository implements MessageRepositoryInterface
     public function setStatus(Message $message, string $status): void
     {
         $message->update(['status' => $status]);
+    }
+
+    public function findInConversation(int $workspaceId, int $conversationId, int $messageId): ?Message
+    {
+        return Message::where('workspace_id', $workspaceId)->where('conversation_id', $conversationId)->find($messageId);
     }
 
     public function setTranslation(Message $message, ?string $language, ?string $translation): void

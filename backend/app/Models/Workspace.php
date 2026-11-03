@@ -24,13 +24,22 @@ class Workspace extends Model
         'api_key_hint',
         'reply_style',
         'inbox_language',
+        'lead_flow_enabled',
+        'lead_questions',
+        'ask_delivery_address',
+        'owner_alerts',
+        'booking_open_time',
+        'booking_close_time',
+        'booking_closed_days',
+        'booking_capacity',
+        'auto_booking_followups',
         'modules',
         'trial_ends_at',
     ];
 
     protected function casts(): array
     {
-        return ['trial_ends_at' => 'datetime', 'modules' => 'array'];
+        return ['trial_ends_at' => 'datetime', 'modules' => 'array', 'lead_flow_enabled' => 'boolean', 'lead_questions' => 'array', 'ask_delivery_address' => 'boolean', 'owner_alerts' => 'boolean', 'booking_closed_days' => 'array', 'booking_capacity' => 'integer', 'auto_booking_followups' => 'boolean'];
     }
 
     // Modules switched on for this shop; null in the database means every module

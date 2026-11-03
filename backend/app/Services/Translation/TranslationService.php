@@ -3,6 +3,7 @@
 namespace App\Services\Translation;
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\Message;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use App\Repositories\Contracts\WorkspaceRepositoryInterface;
@@ -10,7 +11,8 @@ use App\Services\AiUsageService;
 
 /**
  * The language bridge: the business reads and writes in its own language (the Inbox language), the customer in theirs.
- * Messages that come in get a translation; a reply written in the Inbox language can be sent in the customer's.
+ * A message is translated into the Inbox language when someone clicks "Translate" on it (never by itself, so nothing is
+ * paid for translations nobody reads); a reply can be translated into the customer's language before it is sent.
  */
 class TranslationService
 {
@@ -22,35 +24,45 @@ class TranslationService
         private AiUsageService $usage,
     ) {}
 
-    /** The customer's message gets a version in the Inbox language, and the chat remembers the customer's language. */
-    public function translateInbound(int $messageId): void
+    /**
+     * A message gets a version in the Inbox language (kept, so a second click costs nothing), and the chat remembers
+     * the language the customer writes in.
+     *
+     * @return array{id: int, language: string|null, translation: string|null}
+     */
+    public function translateMessage(int $workspaceId, int $conversationId, int $messageId): array
     {
-        $message = $this->messages->find($messageId);
+        $message = $this->messages->findInConversation($workspaceId, $conversationId, $messageId)
+            ?? throw new BusinessRuleException(__('conversations.not_found'), 404);
 
-        if (! $message || $message->direction !== 'inbound' || ! $message->body || $message->translation) {
-            return;
+        if (! $message->body) {
+            throw new BusinessRuleException(__('translation.no_text'), 422);
+        }
+
+        if ($message->language !== null || $message->translation !== null) {
+            return $this->present($message); // done before
         }
 
         // Same rule as the AI reply: a trial that is over, a suspended business or a used-up day pays for nothing
-        if (! $this->usage->allowed($message->workspace_id)) {
-            return;
+        if (! $this->usage->allowed($workspaceId)) {
+            throw new BusinessRuleException(__('translation.not_available'), 403);
         }
 
-        $inbox = $this->workspaces->findById($message->workspace_id)->inbox_language;
-        $result = $this->translator->translate($message->body, $this->nameOf($inbox));
+        $inbox = $this->workspaces->findById($workspaceId)->inbox_language;
+        $result = $this->translator->translate($message->body, $this->nameOf($inbox))
+            ?? throw new BusinessRuleException(__('translation.failed'), 503);
 
-        if (! $result) {
-            return;
-        }
-
-        $language = $this->cleanCode($result['language']);
+        $unchanged = trim($result['translation']) === trim($message->body);
+        $language = $this->languageOf($result['language'], $unchanged, $inbox);
 
         // Written in the Inbox language already: nothing to show underneath
-        $this->messages->setTranslation($message, $language, $language === $inbox ? null : $result['translation']);
+        $this->messages->setTranslation($message, $language, $unchanged ? null : $result['translation']);
 
-        if ($language) {
-            $this->conversations->setCustomerLanguage($this->conversations->find($message->conversation_id), $language);
+        if ($language && $message->direction === 'inbound') {
+            $this->conversations->setCustomerLanguage($this->conversations->find($conversationId), $language);
         }
+
+        return $this->present($message->refresh());
     }
 
     /**
@@ -79,6 +91,11 @@ class TranslationService
         return ['text' => $result['translation'], 'to' => $target, 'to_name' => $this->languages()[$target]];
     }
 
+    private function present(Message $message): array
+    {
+        return ['id' => $message->id, 'language' => $message->language, 'translation' => $message->translation];
+    }
+
     private function languages(): array
     {
         return config('translation.languages');
@@ -87,6 +104,21 @@ class TranslationService
     private function nameOf(string $code): string
     {
         return $this->languages()[$code] ?? $code;
+    }
+
+    /**
+     * The language the customer wrote in. A message that came back unchanged was already in the Inbox language; one that
+     * was changed cannot have been (a model sometimes names the language it translated INTO), so that answer is dropped.
+     */
+    private function languageOf(?string $reported, bool $unchanged, string $inbox): ?string
+    {
+        if ($unchanged) {
+            return $inbox;
+        }
+
+        $language = $this->cleanCode($reported);
+
+        return $language === $inbox ? null : $language;
     }
 
     // "EN", "en-US" -> "en"; anything that is not a two-letter code -> null

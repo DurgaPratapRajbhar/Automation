@@ -31,12 +31,12 @@ enum WorkspaceModule: string
     public function permissionGroups(): array
     {
         return match ($this) {
-            self::Inbox => ['conversations', 'messages'],
+            self::Inbox => ['conversations', 'messages', 'promises', 'orders'],
             self::WhatsApp => ['channels', 'templates'],
-            self::Knowledge => ['knowledge-sources'],
+            self::Knowledge => ['knowledge-sources', 'products'],
             self::Customers => ['customers'],
             self::Team => ['members', 'roles'],
-            self::Campaigns => ['contact-imports', 'campaigns'],
+            self::Campaigns => ['contact-imports', 'campaigns', 'campaign-drafts'],
         };
     }
 

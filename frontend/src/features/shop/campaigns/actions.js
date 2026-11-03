@@ -63,3 +63,10 @@ export async function cancelCampaign(campaignId) {
 
   return ok ? { message: data.message } : formError(data);
 }
+
+// The Marketing agent writes the offer message from a few words. Nothing is saved or sent.
+export async function draftCampaign(brief) {
+  const { ok, data } = await backend('campaign-drafts', { method: 'POST', body: { brief } });
+
+  return ok ? { draft: data.data } : { message: data.errors?.brief?.[0] ?? data.message };
+}

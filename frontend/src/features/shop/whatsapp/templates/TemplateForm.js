@@ -22,9 +22,9 @@ function blanksIn(text) {
   return numbers.size;
 }
 
-export default function TemplateForm({ action }) {
+export default function TemplateForm({ action, draft }) {
   const [state, formAction, pending] = useActionState(action, {});
-  const values = state.values ?? {};
+  const values = state.values ?? draft ?? {};
   const errors = state.errors ?? {};
   const [body, setBody] = useState(values.body ?? '');
   const formRef = useRef(null);

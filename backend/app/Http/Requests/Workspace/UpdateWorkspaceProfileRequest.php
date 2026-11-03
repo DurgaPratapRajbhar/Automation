@@ -30,6 +30,18 @@ class UpdateWorkspaceProfileRequest extends FormRequest
             'reply_style' => ['sometimes', 'nullable', Rule::in(['auto', 'hinglish'])],
             // The language the owner reads and writes in; chats are translated into it
             'inbox_language' => ['sometimes', Rule::in(array_keys(config('translation.languages')))],
+            // The Sales agent: switch and the questions it asks a new person (blank ones are dropped)
+            'ask_delivery_address' => ['sometimes', 'boolean'],
+            'owner_alerts' => ['sometimes', 'boolean'],
+            'booking_open_time' => ['sometimes', 'date_format:H:i'],
+            'booking_close_time' => ['sometimes', 'date_format:H:i', fn ($attribute, $value, $fail) => $value > $this->input('booking_open_time', $this->attributes->get('workspace')->booking_open_time) || $fail(__('bookings.close_after_open'))],
+            'booking_closed_days' => ['sometimes', 'nullable', 'array'],
+            'booking_closed_days.*' => ['string', Rule::in(config('bookings.days'))],
+            'booking_capacity' => ['sometimes', 'integer', 'min:1', 'max:50'],
+            'auto_booking_followups' => ['sometimes', 'boolean'],
+            'lead_flow_enabled' => ['sometimes', 'boolean'],
+            'lead_questions' => ['sometimes', 'nullable', 'array', 'max:'.config('leads.max_questions')],
+            'lead_questions.*' => ['nullable', 'string', 'max:'.config('leads.question_length')],
         ];
     }
 }

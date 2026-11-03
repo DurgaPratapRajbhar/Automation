@@ -13,6 +13,9 @@ interface WorkspaceRepositoryInterface
 
     public function findById(int $workspaceId): ?Workspace;
 
+    // Every business that is switched on and not past its trial (the daily jobs go through these)
+    public function allActive(): Collection;
+
     public function findByApiKeyHash(string $hash): ?Workspace;
 
     // Active workspaces of a user, with the user's role in each

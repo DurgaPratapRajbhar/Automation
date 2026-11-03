@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\ActionController;
 use App\Http\Controllers\Api\AdminRoleTemplateController;
 use App\Http\Controllers\Api\AdminWorkspaceController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CampaignController;
+use App\Http\Controllers\Api\CampaignDraftController;
 use App\Http\Controllers\Api\ChannelController;
 use App\Http\Controllers\Api\ContactImportController;
 use App\Http\Controllers\Api\ConversationController;
@@ -12,7 +14,11 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\EmbeddedSignupController;
 use App\Http\Controllers\Api\KnowledgeSourceController;
 use App\Http\Controllers\Api\MemberController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OverviewController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\PromiseController;
 use App\Http\Controllers\Api\PublicAskController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\WhatsAppTemplateController;
@@ -43,7 +49,7 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
     | (index/show -> view, store -> create, update -> edit, destroy -> delete).
     | Run `php artisan permissions:sync` after adding routes.
     */
-    Route::middleware('permission')->whereNumber(['roleId', 'userId', 'channelId', 'customerId', 'knowledgeSourceId', 'conversationId', 'campaignId'])->group(function () {
+    Route::middleware('permission')->whereNumber(['roleId', 'userId', 'channelId', 'customerId', 'knowledgeSourceId', 'conversationId', 'campaignId', 'messageId', 'promiseId', 'actionId', 'productId', 'orderId'])->group(function () {
 
         Route::get('/workspace/profile', [WorkspaceProfileController::class, 'show'])->name('workspace.show');
         Route::put('/workspace/profile', [WorkspaceProfileController::class, 'update'])->name('workspace.update');
@@ -117,6 +123,17 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
             ->name('campaigns.start');
         Route::post('/campaigns/{campaignId}/cancel', [CampaignController::class, 'cancel'])->name('campaigns.cancel');
 
+        // What the business sells; the bot answers price and availability from these (Knowledge module)
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+        Route::put('/products/{productId}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{productId}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        // The Marketing agent writes the offer message of a campaign (campaign module)
+        Route::post('/campaign-drafts', [CampaignDraftController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('campaign-drafts.create');
+
         Route::get('/knowledge-sources', [KnowledgeSourceController::class, 'index'])->name('knowledge-sources.index');
         Route::post('/knowledge-sources', [KnowledgeSourceController::class, 'store'])->name('knowledge-sources.store');
         Route::get('/knowledge-sources/{knowledgeSourceId}', [KnowledgeSourceController::class, 'show'])->name('knowledge-sources.show');
@@ -126,6 +143,9 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         // Inbox: dukaan ki WhatsApp chats. Reply = "messages.create" permission
         Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
         Route::get('/conversations/{conversationId}', [ConversationController::class, 'show'])->name('conversations.show');
+        Route::post('/conversations/{conversationId}/messages/{messageId}/translate', [ConversationController::class, 'translateMessage'])
+            ->middleware('throttle:60,1')
+            ->name('messages.translate');
         Route::post('/conversations/{conversationId}/translate', [ConversationController::class, 'translate'])
             ->middleware('throttle:30,1')
             ->name('conversations.translate');
@@ -136,6 +156,21 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         Route::post('/conversations/{conversationId}/template', [ConversationController::class, 'sendTemplate'])
             ->middleware('throttle:30,1')
             ->name('messages.template');
+
+        // Promises: what customers said they will do by a date (Inbox module)
+        Route::get('/promises', [PromiseController::class, 'index'])->name('promises.index');
+        Route::get('/overview', [OverviewController::class, 'show'])->name('overview.view');
+        Route::get('/promises/summary', [PromiseController::class, 'summary'])->name('promises.view');
+        Route::post('/promises', [PromiseController::class, 'store'])->name('promises.create');
+        Route::put('/promises/{promiseId}', [PromiseController::class, 'update'])->name('promises.update');
+
+        // Orders and bookings taken in chats (Inbox module)
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::put('/orders/{orderId}', [OrderController::class, 'update'])->name('orders.edit');
+
+        // What the agents want to do: the owner approves or rejects (Verified Actions)
+        Route::get('/actions', [ActionController::class, 'index'])->name('actions.index');
+        Route::put('/actions/{actionId}', [ActionController::class, 'update'])->name('actions.edit');
 
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });

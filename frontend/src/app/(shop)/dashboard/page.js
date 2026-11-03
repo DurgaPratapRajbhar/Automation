@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { MENU } from '@/components/shop/menu';
 import Icon from '@/components/ui/Icon';
+import DailySummaryCard from '@/features/shop/promises/DailySummaryCard';
+import { getOverview, getSummary } from '@/features/shop/promises/queries';
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
 export default async function DashboardPage() {
@@ -11,6 +13,10 @@ export default async function DashboardPage() {
 
   const { workspace, role, permissions } = data.data;
   // Shortcut cards for every page this user may open
+  const [summary, overview] = await Promise.all([
+    permissions.includes('promises.view') ? getSummary() : null,
+    permissions.includes('overview.view') ? getOverview() : null,
+  ]);
   const shortcuts = MENU.filter((item) => item.hint && (!item.permission || permissions.includes(item.permission)));
 
   return (
@@ -19,6 +25,8 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold">Welcome to {workspace.name}</h1>
         <p className="mt-1 text-slate-600">You are signed in as {role?.name ?? 'Super admin'}. Pick where you want to go.</p>
       </div>
+
+      {summary?.ok && <DailySummaryCard summary={summary.data.data} overview={overview?.ok ? overview.data.data : null} />}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {shortcuts.map((item) => (

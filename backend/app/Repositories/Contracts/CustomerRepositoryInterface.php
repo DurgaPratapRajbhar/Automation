@@ -25,6 +25,8 @@ interface CustomerRepositoryInterface
     // Everyone in the workspace, or only these ids; the caller decides who may get a campaign
     public function forCampaign(int $workspaceId, ?array $ids): Collection;
 
+    public function countForWorkspace(int $workspaceId): int;
+
     public function findByPhone(int $workspaceId, string $phone): ?Customer;
 
     // One phone number per customer within a workspace
