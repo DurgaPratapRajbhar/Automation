@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Enums\WorkspaceModule;
+use App\Http\Controllers\Controller;
 use App\Services\WorkspacePermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

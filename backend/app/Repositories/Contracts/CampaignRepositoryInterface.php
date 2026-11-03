@@ -32,6 +32,9 @@ interface CampaignRepositoryInterface
 
     public function sampleRecipients(Campaign $campaign, int $limit): Collection;
 
+    // People whose message did not go (refused straight away, or reported failed later), with the reason
+    public function failedRecipients(Campaign $campaign, int $limit): Collection;
+
     // Counts for the report: total, queued, sent, delivered, read, replied, failed, skipped
     public function report(Campaign $campaign): array;
 }

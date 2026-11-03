@@ -25,6 +25,7 @@ class ContactImportService
 
     public function __construct(
         private SpreadsheetReader $reader,
+        private PhoneNormalizer $phones,
         private CustomerRepositoryInterface $customers
     ) {}
 
@@ -74,7 +75,7 @@ class ContactImportService
         $valid = []; // phone => ['row' => n, 'name' => .., 'data' => [..]]
 
         foreach ($rows as $number => $row) {
-            $phone = $this->normalizePhone($row[$phoneIndex] ?? '');
+            $phone = $this->phones->normalize($row[$phoneIndex] ?? '');
 
             if ($phone === null) {
                 $problems[] = ['row' => $number, 'reason' => __('contacts.bad_phone', ['value' => Str::limit($row[$phoneIndex] ?? '', 30)])];
@@ -141,35 +142,6 @@ class ContactImportService
         ];
     }
 
-    /**
-     * "+91 98765-43210", "098765 43210", "9876543210" -> "919876543210". null when it cannot be a phone number.
-     * A 10-digit number gets the default country code; a longer one is taken to have its country code already.
-     */
-    public function normalizePhone(string $raw): ?string
-    {
-        $digits = preg_replace('/\D+/', '', $raw);
-        $country = (string) config('campaigns.default_country_code');
-
-        if (strlen($digits) === 11 && $digits[0] === '0') {
-            $digits = substr($digits, 1); // local style with a leading zero
-        }
-
-        if (strlen($digits) === 10) {
-            $digits = $country.$digits;
-        }
-
-        if (! preg_match('/^\d{10,15}$/', $digits)) {
-            return null;
-        }
-
-        // Indian mobile numbers start with 6-9 after the country code
-        if ($country === '91' && str_starts_with($digits, '91') && strlen($digits) === 12 && ! preg_match('/^91[6-9]/', $digits)) {
-            return null;
-        }
-
-        return $digits;
-    }
-
     private function extraData(array $headers, array $row, array $indexes): array
     {
         $data = [];
@@ -197,7 +169,7 @@ class ContactImportService
         $sample = array_slice($rows, 0, 20);
 
         foreach ($headers as $index => $title) {
-            $matches = count(array_filter($sample, fn ($row) => $this->normalizePhone($row[$index] ?? '') !== null));
+            $matches = count(array_filter($sample, fn ($row) => $this->phones->normalize($row[$index] ?? '') !== null));
 
             if ($sample && $matches / count($sample) >= 0.7) {
                 return $title;

@@ -45,14 +45,14 @@ function campaignBusiness(TestCase $test, string $email = 'owner@example.com'): 
 }
 
 // Meta says the template is approved, and accepts every message (each gets its own wamid)
-function fakeMetaForCampaigns(string $templateStatus = 'APPROVED', int $sendStatus = 200): void
+function fakeMetaForCampaigns(string $templateStatus = 'APPROVED', int $sendStatus = 200, ?string $limitTier = 'TIER_250'): void
 {
     // A fresh fake each time: fakes added later would otherwise sit behind the earlier ones
     Http::swap(new HttpFactory);
 
     $sent = 0;
 
-    Http::fake(function (Request $request) use ($templateStatus, $sendStatus, &$sent) {
+    Http::fake(function (Request $request) use ($templateStatus, $sendStatus, $limitTier, &$sent) {
         if (str_contains($request->url(), '/555666777/message_templates')) {
             return Http::response(['data' => [[
                 'name' => 'fees_due', 'status' => $templateStatus, 'language' => 'en',
@@ -64,6 +64,11 @@ function fakeMetaForCampaigns(string $templateStatus = 'APPROVED', int $sendStat
             return $sendStatus === 200
                 ? Http::response(['messages' => [['id' => 'wamid.c'.++$sent]]])
                 : Http::response(['error' => ['message' => 'Re-engagement message', 'code' => 131047]], $sendStatus);
+        }
+
+        // The number's own details (its daily limit); $limitTier = null makes Meta fail
+        if (str_contains($request->url(), '/444000111')) {
+            return $limitTier ? Http::response(['messaging_limit_tier' => $limitTier, 'id' => '444000111']) : Http::response([], 500);
         }
 
         return Http::response([], 500);
@@ -198,7 +203,7 @@ test('sending reaches every person: saved in the inbox with the blanks filled, s
         && $r['template']['name'] === 'fees_due'
         && $r['template']['components'][0]['parameters'][1]['text'] === '1200');
     // Meta was asked about the template once for the whole campaign, not once per person
-    Http::assertSentCount(1 + 2);
+    expect(Http::recorded(fn (Request $r) => str_contains($r->url(), '/message_templates'))->count())->toBe(1);
 });
 
 test('the report follows delivered, read and replied as WhatsApp reports them', function () {
@@ -354,4 +359,106 @@ test('the new-campaign page gets the connected numbers, the Excel columns and ho
         ->assertJsonPath('data.columns', ['Fees Due', 'Last Date'])
         ->assertJsonPath('data.people.ready', 2)
         ->assertJsonPath('data.people.total', 4);
+});
+
+test('a test message goes to the number the business writes, without touching the campaign', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+    fakeMetaForCampaigns();
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)->json('data.id');
+
+    $this->postJson("/api/campaigns/{$id}/test", ['phone' => '+91 98111-22233'], $headers)
+        ->assertOk()
+        ->assertJsonPath('data.to', '919811122233')
+        ->assertJsonPath('data.status', 'sent')
+        ->assertJsonPath('data.text', 'Namaste Ramesh, fees 1200 is due by 10 Nov 2026.');
+
+    Http::assertSent(fn (Request $r) => str_contains($r->url(), '/444000111/messages') && $r['to'] === '919811122233');
+    $this->getJson("/api/campaigns/{$id}", $headers)
+        ->assertJsonPath('data.status', 'draft')
+        ->assertJsonPath('data.report.queued', 2)
+        ->assertJsonPath('data.report.sent', 0);
+    expect(Message::where('type', 'template')->count())->toBe(1);
+});
+
+test('a test needs a valid number and is only for a campaign that has not started', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+    fakeMetaForCampaigns();
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)->json('data.id');
+
+    $this->postJson("/api/campaigns/{$id}/test", ['phone' => '12345'], $headers)->assertUnprocessable();
+    $this->postJson("/api/campaigns/{$id}/test", [], $headers)->assertUnprocessable()->assertJsonValidationErrors('phone');
+
+    $this->postJson("/api/campaigns/{$id}/start", [], $headers)->assertOk();
+    $this->postJson("/api/campaigns/{$id}/test", ['phone' => '9811122233'], $headers)
+        ->assertUnprocessable()
+        ->assertJsonPath('message', 'A test can only be sent before the campaign starts.');
+});
+
+test('before sending, a campaign bigger than what WhatsApp allows the number per day is warned about', function () {
+    [$headers, $workspaceId, $channel] = campaignBusiness($this);
+    foreach (range(1, 60) as $number) {
+        Customer::create(['workspace_id' => $workspaceId, 'name' => "Person {$number}", 'phone' => '9170000'.str_pad($number, 5, '0', STR_PAD_LEFT), 'whatsapp_opt_in' => true, 'data' => ['Fees Due' => '100', 'Last Date' => '1 Dec 2026']]);
+    }
+
+    fakeMetaForCampaigns(limitTier: 'TIER_50');
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)
+        ->assertCreated()
+        ->assertJsonPath('data.sending_limit.tier', 'TIER_50')
+        ->assertJsonPath('data.sending_limit.per_day', 50)
+        ->assertJsonPath('data.sending_limit.over_limit', true)
+        ->json('data.id');
+
+    fakeMetaForCampaigns(limitTier: 'TIER_1K');
+    $this->getJson("/api/campaigns/{$id}", $headers)
+        ->assertJsonPath('data.sending_limit.per_day', 1000)
+        ->assertJsonPath('data.sending_limit.over_limit', false);
+
+    fakeMetaForCampaigns(limitTier: 'TIER_UNLIMITED');
+    $this->getJson("/api/campaigns/{$id}", $headers)
+        ->assertJsonPath('data.sending_limit.per_day', null)
+        ->assertJsonPath('data.sending_limit.over_limit', false);
+});
+
+test('a number whose limit cannot be checked is not blocked, and the limit is only checked before the start', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+    fakeMetaForCampaigns(limitTier: null);
+
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)
+        ->assertCreated()
+        ->assertJsonPath('data.sending_limit', null)
+        ->json('data.id');
+
+    fakeMetaForCampaigns();
+    $this->postJson("/api/campaigns/{$id}/start", [], $headers)->assertOk()->assertJsonPath('data.sending_limit', null);
+});
+
+test('the report names the people whose message did not go, with the reason', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+    fakeMetaForCampaigns();
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)->json('data.id');
+
+    fakeMetaForCampaigns('APPROVED', 400);
+    $this->postJson("/api/campaigns/{$id}/start", [], $headers)->assertOk();
+
+    $this->getJson("/api/campaigns/{$id}", $headers)
+        ->assertJsonPath('data.failed_people.0.name', 'Ramesh')
+        ->assertJsonPath('data.failed_people.0.phone', '919876543210')
+        ->assertJsonPath('data.failed_people.0.error', fn ($text) => str_contains($text, 'Re-engagement'))
+        ->assertJsonCount(2, 'data.failed_people');
+});
+
+test('a message WhatsApp reports as failed later also shows with its reason', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+    fakeMetaForCampaigns();
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)->json('data.id');
+    $this->postJson("/api/campaigns/{$id}/start", [], $headers)->assertOk();
+
+    app(OutboundMessageService::class)->applyStatuses(['statuses' => [[
+        'id' => 'wamid.c2', 'status' => 'failed', 'errors' => [['code' => 131026, 'title' => 'Message undeliverable']],
+    ]]]);
+
+    $this->getJson("/api/campaigns/{$id}", $headers)
+        ->assertJsonPath('data.report.failed', 1)
+        ->assertJsonPath('data.failed_people.0.name', 'Sita')
+        ->assertJsonPath('data.failed_people.0.error', fn ($text) => str_contains($text, 'undeliverable'));
 });

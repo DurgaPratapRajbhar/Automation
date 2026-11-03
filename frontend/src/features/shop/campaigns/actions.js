@@ -41,6 +41,13 @@ export async function createCampaign(payload) {
   return { campaign: data.data };
 }
 
+// Sends the first person's message to a number the business chooses (its own phone), before the real send
+export async function sendTestMessage(campaignId, phone) {
+  const { ok, data } = await backend(`campaigns/${campaignId}/test`, { method: 'POST', body: { phone } });
+
+  return ok ? { sent: data.data } : { message: data.errors?.phone?.[0] ?? data.message };
+}
+
 export async function startCampaign(campaignId) {
   const { ok, data } = await backend(`campaigns/${campaignId}/start`, { method: 'POST' });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Campaigns\SendTestMessageRequest;
 use App\Http\Requests\Campaigns\StoreCampaignRequest;
 use App\Services\Campaigns\CampaignService;
 use Illuminate\Http\JsonResponse;
@@ -57,6 +58,16 @@ class CampaignController extends Controller
             'success' => true,
             'message' => __('campaigns.started'),
             'data' => $this->campaignService->start($workspace->id, $campaignId),
+        ]);
+    }
+
+    public function test(SendTestMessageRequest $request, int $campaignId): JsonResponse
+    {
+        $workspace = $request->attributes->get('workspace');
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->campaignService->sendTest($workspace->id, $request->user()->id, $campaignId, $request->validated('phone')),
         ]);
     }
 

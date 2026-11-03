@@ -4,6 +4,7 @@ import Alert from '@/components/ui/Alert';
 import AutoRefresh from '@/components/ui/AutoRefresh';
 import PageHeader from '@/components/ui/PageHeader';
 import { cancelCampaign, startCampaign } from '@/features/shop/campaigns/actions';
+import TestMessageForm from '@/features/shop/campaigns/TestMessageForm';
 import CampaignStatusBadge from '@/features/shop/campaigns/CampaignStatusBadge';
 import { getCampaign } from '@/features/shop/campaigns/queries';
 import { can } from '@/features/shop/workspace/queries';
@@ -53,6 +54,8 @@ export default async function CampaignPage({ params }) {
         )}
       </div>
 
+      <SendingLimitNote limit={campaign.sending_limit} people={report.total} />
+
       <section className="space-y-2">
         <h2 className="font-semibold">The message</h2>
         <p className="max-w-2xl whitespace-pre-line rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{campaign.template_body}</p>
@@ -70,6 +73,8 @@ export default async function CampaignPage({ params }) {
         </ul>
       </section>
 
+      {campaign.status === 'draft' && (await can('campaigns.test')) && <TestMessageForm campaignId={campaign.id} />}
+
       <section className="space-y-2">
         <h2 className="font-semibold">Report</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -82,6 +87,34 @@ export default async function CampaignPage({ params }) {
           ))}
         </div>
       </section>
+
+      {campaign.failed_people.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-semibold">Messages that did not go</h2>
+          <ul className="max-w-2xl space-y-1 text-sm">
+            {campaign.failed_people.map((person) => (
+              <li key={person.phone} className="rounded-lg bg-red-50 px-3 py-2 text-red-800">
+                <strong>{person.name}</strong> · {person.phone}
+                <span className="block text-xs">{person.error}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
+  );
+}
+
+// WhatsApp lets a number message only so many new people a day; say so before a bigger campaign starts
+function SendingLimitNote({ limit, people }) {
+  if (!limit || limit.per_day === null) return null;
+
+  return limit.over_limit ? (
+    <p className="max-w-2xl rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+      WhatsApp lets this number message about <strong>{limit.per_day}</strong> new people a day, and this campaign has <strong>{people}</strong>.
+      Messages beyond that may not be delivered. Send it to fewer people, or send it in parts over a few days.
+    </p>
+  ) : (
+    <p className="text-sm text-slate-500">This number can message about {limit.per_day} new people a day.</p>
   );
 }

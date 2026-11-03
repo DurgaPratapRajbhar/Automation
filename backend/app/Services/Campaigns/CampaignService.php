@@ -8,11 +8,14 @@ use App\Exceptions\BusinessRuleException;
 use App\Jobs\SendCampaignMessage;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
+use App\Models\Conversation;
 use App\Models\Customer;
+use App\Models\Message;
 use App\Repositories\Contracts\CampaignRepositoryInterface;
 use App\Repositories\Contracts\ChannelRepositoryInterface;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
+use App\Services\Contacts\PhoneNormalizer;
 use App\Services\TemplateMessageService;
 use App\Services\WhatsAppTemplateService;
 use Illuminate\Contracts\Pagination\CursorPaginator;
@@ -26,6 +29,8 @@ class CampaignService
 {
     private const SAMPLE_MESSAGES = 3;
 
+    private const FAILURES_SHOWN = 20;
+
     public function __construct(
         private CampaignRepositoryInterface $campaigns,
         private CustomerRepositoryInterface $customers,
@@ -34,6 +39,8 @@ class CampaignService
         private WhatsAppTemplateService $templates,
         private TemplateMessageService $templateMessages,
         private CampaignParameters $parameters,
+        private SendingLimit $sendingLimit,
+        private PhoneNormalizer $phones,
     ) {}
 
     public function list(int $workspaceId, int $perPage): CursorPaginator
@@ -75,10 +82,18 @@ class CampaignService
     public function show(int $workspaceId, int $campaignId): array
     {
         $campaign = $this->findOrFail($workspaceId, $campaignId);
+        $report = $this->campaigns->report($campaign);
 
         return [
             ...$this->present($campaign),
-            'report' => $this->campaigns->report($campaign),
+            'report' => $report,
+            'sending_limit' => $campaign->status === CampaignStatus::Draft->value ? $this->limitFor($campaign, $report['total']) : null,
+            'failed_people' => $this->campaigns->failedRecipients($campaign, self::FAILURES_SHOWN)
+                ->map(fn ($recipient) => [
+                    'name' => $recipient->customer->name,
+                    'phone' => $recipient->phone,
+                    'error' => $recipient->error ?? $recipient->message_error,
+                ])->all(),
             'sample_messages' => $this->campaigns->sampleRecipients($campaign, self::SAMPLE_MESSAGES)
                 ->map(fn ($recipient) => [
                     'name' => $recipient->customer->name,
@@ -130,6 +145,23 @@ class CampaignService
         });
 
         return [...$this->show($workspaceId, $campaign->id), 'skipped' => $skipped];
+    }
+
+    /** Sends the first person's message to a number the business chooses (its own phone), before the real send */
+    public function sendTest(int $workspaceId, int $userId, int $campaignId, string $rawPhone): array
+    {
+        $campaign = $this->findOrFail($workspaceId, $campaignId);
+
+        if ($campaign->status !== CampaignStatus::Draft->value) {
+            throw new BusinessRuleException(__('campaigns.test_only_draft'), 422);
+        }
+
+        $phone = $this->phones->normalize($rawPhone) ?? throw new BusinessRuleException(__('campaigns.test_bad_phone'), 422);
+        $conversation = $this->conversations->findOrCreateForCustomer($workspaceId, $campaign->channel_id, $phone, __('campaigns.test_name'));
+
+        $message = $this->sendTemplate($campaign, $conversation, $this->campaigns->sampleRecipients($campaign, 1)->first()->parameters, $userId);
+
+        return ['to' => $phone, 'status' => $message->status, 'error' => $message->error, 'text' => $message->body];
     }
 
     public function start(int $workspaceId, int $campaignId): array
@@ -201,6 +233,28 @@ class CampaignService
         }
     }
 
+    // The campaign's template with these values; it was checked with Meta when the campaign was made
+    private function sendTemplate(Campaign $campaign, Conversation $conversation, array $parameters, ?int $userId): Message
+    {
+        return $this->templateMessages->send(
+            $conversation,
+            $userId,
+            $campaign->template_name,
+            $campaign->template_language,
+            $parameters,
+            ['body' => $campaign->template_body, 'blanks' => count($parameters)],
+        );
+    }
+
+    // What WhatsApp allows this number per day, and whether this campaign is bigger than that
+    private function limitFor(Campaign $campaign, int $people): ?array
+    {
+        $channel = $this->channels->findInWorkspace($campaign->workspace_id, $campaign->channel_id);
+        $limit = $channel ? $this->sendingLimit->forChannel($channel) : null;
+
+        return $limit ? [...$limit, 'over_limit' => $limit['per_day'] !== null && $people > $limit['per_day']] : null;
+    }
+
     private function finishIfAllSent(Campaign $campaign): void
     {
         if ($campaign->status === CampaignStatus::Sending->value && ! $this->campaigns->hasQueued($campaign)) {
@@ -214,14 +268,7 @@ class CampaignService
             $campaign->workspace_id, $campaign->channel_id, $recipient->phone, $recipient->customer->name,
         );
 
-        $message = $this->templateMessages->send(
-            $conversation,
-            $campaign->created_by_user_id,
-            $campaign->template_name,
-            $campaign->template_language,
-            $recipient->parameters,
-            ['body' => $campaign->template_body, 'blanks' => count($recipient->parameters)],
-        );
+        $message = $this->sendTemplate($campaign, $conversation, $recipient->parameters, $campaign->created_by_user_id);
 
         // The message is saved as "failed" with the reason when WhatsApp refused it straight away
         $failed = $message->status === 'failed';

@@ -97,6 +97,20 @@ class CampaignRepository implements CampaignRepositoryInterface
             ->get();
     }
 
+    public function failedRecipients(Campaign $campaign, int $limit): Collection
+    {
+        return CampaignRecipient::with('customer:id,name')
+            ->leftJoin('messages as m', 'm.id', '=', 'campaign_recipients.message_id')
+            ->where('campaign_recipients.campaign_id', $campaign->id)
+            ->where(fn ($query) => $query
+                ->where('campaign_recipients.status', RecipientStatus::Failed->value)
+                ->orWhere('m.status', 'failed'))
+            ->select('campaign_recipients.*', 'm.error as message_error')
+            ->orderBy('campaign_recipients.id')
+            ->limit($limit)
+            ->get();
+    }
+
     public function report(Campaign $campaign): array
     {
         // One pass over the recipients and the message each one got. "replied" = the person wrote back after it.

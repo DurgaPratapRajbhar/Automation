@@ -109,6 +109,9 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.create');
         Route::get('/campaigns/options', [CampaignController::class, 'options'])->name('campaigns.options');
         Route::get('/campaigns/{campaignId}', [CampaignController::class, 'show'])->name('campaigns.view');
+        Route::post('/campaigns/{campaignId}/test', [CampaignController::class, 'test'])
+            ->middleware('throttle:5,1')
+            ->name('campaigns.test');
         Route::post('/campaigns/{campaignId}/start', [CampaignController::class, 'start'])
             ->middleware('throttle:10,1')
             ->name('campaigns.start');
