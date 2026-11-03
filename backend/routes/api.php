@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminRoleTemplateController;
 use App\Http\Controllers\Api\AdminWorkspaceController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CampaignController;
 use App\Http\Controllers\Api\ChannelController;
 use App\Http\Controllers\Api\ContactImportController;
 use App\Http\Controllers\Api\ConversationController;
@@ -42,7 +43,7 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
     | (index/show -> view, store -> create, update -> edit, destroy -> delete).
     | Run `php artisan permissions:sync` after adding routes.
     */
-    Route::middleware('permission')->whereNumber(['roleId', 'userId', 'channelId', 'customerId', 'knowledgeSourceId', 'conversationId'])->group(function () {
+    Route::middleware('permission')->whereNumber(['roleId', 'userId', 'channelId', 'customerId', 'knowledgeSourceId', 'conversationId', 'campaignId'])->group(function () {
 
         Route::get('/workspace/profile', [WorkspaceProfileController::class, 'show'])->name('workspace.show');
         Route::put('/workspace/profile', [WorkspaceProfileController::class, 'update'])->name('workspace.update');
@@ -102,6 +103,15 @@ Route::middleware(['jwt.auth', 'workspace'])->group(function () {
         Route::post('/contact-imports', [ContactImportController::class, 'store'])
             ->middleware('throttle:10,1')
             ->name('contact-imports.create');
+
+        // Campaigns: one approved template to many people (campaign module)
+        Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+        Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.create');
+        Route::get('/campaigns/{campaignId}', [CampaignController::class, 'show'])->name('campaigns.view');
+        Route::post('/campaigns/{campaignId}/start', [CampaignController::class, 'start'])
+            ->middleware('throttle:10,1')
+            ->name('campaigns.start');
+        Route::post('/campaigns/{campaignId}/cancel', [CampaignController::class, 'cancel'])->name('campaigns.cancel');
 
         Route::get('/knowledge-sources', [KnowledgeSourceController::class, 'index'])->name('knowledge-sources.index');
         Route::post('/knowledge-sources', [KnowledgeSourceController::class, 'store'])->name('knowledge-sources.store');

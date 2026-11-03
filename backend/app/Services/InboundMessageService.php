@@ -6,6 +6,7 @@ use App\Events\MessageReceived;
 use App\Repositories\Contracts\ChannelRepositoryInterface;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\MessageRepositoryInterface;
+use App\Services\Contacts\OptOutService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,7 @@ class InboundMessageService
         private ChannelRepositoryInterface $channels,
         private ConversationRepositoryInterface $conversations,
         private MessageRepositoryInterface $messages,
+        private OptOutService $optOut,
     ) {}
 
     /**
@@ -81,7 +83,10 @@ class InboundMessageService
             return;
         }
 
-        // 5) Ring the bell — AI reply, notifications etc. will listen (next steps)
+        // 5) "STOP" / "BAND": no more campaign messages to this person
+        $this->optOut->recordIfStop($message->workspace_id, $incoming['from'], $incoming['text']['body'] ?? null);
+
+        // 6) Ring the bell — AI reply, notifications etc. will listen (next steps)
         MessageReceived::dispatch(
             $message->workspace_id,
             $message->conversation_id,

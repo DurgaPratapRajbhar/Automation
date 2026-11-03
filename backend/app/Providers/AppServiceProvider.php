@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Contracts\CampaignRepositoryInterface;
 use App\Repositories\Contracts\ChannelRepositoryInterface;
 use App\Repositories\Contracts\ConversationRepositoryInterface;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Repositories\Contracts\RoleTemplateRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Contracts\WorkspaceRepositoryInterface;
 use App\Repositories\Eloquent\AuditLogRepository;
+use App\Repositories\Eloquent\CampaignRepository;
 use App\Repositories\Eloquent\ChannelRepository;
 use App\Repositories\Eloquent\ConversationRepository;
 use App\Repositories\Eloquent\CustomerRepository;
@@ -115,6 +117,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             CustomerRepositoryInterface::class,
             CustomerRepository::class
+        );
+
+        $this->app->bind(
+            CampaignRepositoryInterface::class,
+            CampaignRepository::class
         );
 
         $this->app->bind(

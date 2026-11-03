@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Channel;
+use App\Models\ChannelCredential;
 use App\Models\User;
 use App\Services\JwtService;
 use Tests\TestCase;
@@ -133,4 +135,26 @@ function superAdminHeaders(): array
     $admin->forceFill(['is_super_admin' => true])->save();
 
     return ['Authorization' => 'Bearer '.tokenFor($admin->id)];
+}
+
+// A connected WhatsApp number of the workspace, with the account id and token Meta calls need
+function whatsappTestChannel(int $workspaceId, string $phoneNumberId = '444000111', string $wabaId = '555666777'): Channel
+{
+    $channel = Channel::create([
+        'workspace_id' => $workspaceId,
+        'type' => 'whatsapp',
+        'provider' => 'meta',
+        'name' => 'Business WA',
+        'external_account_id' => $wabaId,
+        'status' => 'connected',
+        'phone_number_id' => $phoneNumberId,
+    ]);
+
+    ChannelCredential::create([
+        'channel_id' => $channel->id,
+        'access_token' => 'BUSINESS_TOKEN',
+        'config' => ['phone_number_id' => $phoneNumberId, 'waba_id' => $wabaId],
+    ]);
+
+    return $channel;
 }

@@ -58,6 +58,19 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->keyBy('phone');
     }
 
+    public function forCampaign(int $workspaceId, ?array $ids): Collection
+    {
+        return Customer::where('workspace_id', $workspaceId)
+            ->when($ids !== null, fn ($query) => $query->whereIn('id', $ids))
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function findByPhone(int $workspaceId, string $phone): ?Customer
+    {
+        return Customer::where('workspace_id', $workspaceId)->where('phone', $phone)->first();
+    }
+
     public function phoneExists(int $workspaceId, string $phone, ?int $ignoreCustomerId = null): bool
     {
         return Customer::where('workspace_id', $workspaceId)

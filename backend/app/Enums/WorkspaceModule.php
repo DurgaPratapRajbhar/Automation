@@ -36,7 +36,7 @@ enum WorkspaceModule: string
             self::Knowledge => ['knowledge-sources'],
             self::Customers => ['customers'],
             self::Team => ['members', 'roles'],
-            self::Campaigns => ['contact-imports'],
+            self::Campaigns => ['contact-imports', 'campaigns'],
         };
     }
 

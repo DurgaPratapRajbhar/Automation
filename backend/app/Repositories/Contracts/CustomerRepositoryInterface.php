@@ -19,9 +19,14 @@ interface CustomerRepositoryInterface
 
     public function delete(Customer $customer): void;
 
-    // One phone number per customer within a workspace
     // Customers of the workspace with any of these phone numbers, keyed by phone
     public function findByPhones(int $workspaceId, array $phones): Collection;
 
+    // Everyone in the workspace, or only these ids; the caller decides who may get a campaign
+    public function forCampaign(int $workspaceId, ?array $ids): Collection;
+
+    public function findByPhone(int $workspaceId, string $phone): ?Customer;
+
+    // One phone number per customer within a workspace
     public function phoneExists(int $workspaceId, string $phone, ?int $ignoreCustomerId = null): bool;
 }

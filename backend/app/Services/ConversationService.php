@@ -22,7 +22,7 @@ class ConversationService
         private ConversationRepositoryInterface $conversations,
         private MessageRepositoryInterface $messages,
         private ChannelService $channelService,
-        private WhatsAppTemplateService $templateService,
+        private TemplateMessageService $templateMessages,
         private OutboundMessageService $outbound,
     ) {}
 
@@ -79,39 +79,14 @@ class ConversationService
         return $this->presentMessage($message->refresh()->load('sentBy:id,name'));
     }
 
-    // Approved template with the shop's values; saved in the inbox with the blanks filled in
+    // Approved template with the business's values; saved in the inbox with the blanks filled in
     public function sendTemplate(int $workspaceId, int $conversationId, int $userId, string $name, string $language, array $parameters): array
     {
         $conversation = $this->findOrFail($workspaceId, $conversationId);
 
-        $template = $this->templateService->approved($workspaceId, $conversation->channel_id, $name, $language);
+        $message = $this->templateMessages->send($conversation, $userId, $name, $language, $parameters);
 
-        $parameters = array_values($parameters);
-
-        if (count($parameters) !== $template['blanks']) {
-            throw new BusinessRuleException(__('templates.params_mismatch', ['count' => $template['blanks']]));
-        }
-
-        $body = preg_replace_callback('/\{\{(\d+)\}\}/', fn ($m) => $parameters[(int) $m[1] - 1] ?? $m[0], $template['body']);
-
-        $message = $this->messages->create([
-            'conversation_id' => $conversation->id,
-            'workspace_id' => $workspaceId,
-            'direction' => 'outbound',
-            'type' => 'template',
-            'body' => $body,
-            'status' => 'sent',
-            'sent_by_user_id' => $userId,
-            'payload' => ['template' => $name, 'language' => $language, 'parameters' => $parameters],
-        ]);
-
-        $this->outbound->deliver($message, fn () => $this->channelService->sendTemplate(
-            $workspaceId, $conversation->channel_id, $conversation->customer_phone, $name, $language, $parameters,
-        ));
-
-        $this->conversations->touchLastMessage($conversation);
-
-        return $this->presentMessage($message->refresh()->load('sentBy:id,name'));
+        return $this->presentMessage($message->load('sentBy:id,name'));
     }
 
     private function findOrFail(int $workspaceId, int $conversationId): Conversation
