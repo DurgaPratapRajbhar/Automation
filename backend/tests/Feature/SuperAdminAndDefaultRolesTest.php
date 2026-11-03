@@ -182,7 +182,7 @@ test('an existing user can own a second shop, but a super admin cannot own one',
 
     $this->postJson('/api/admin/workspaces', ['workspace_name' => 'Nope', 'owner_email' => 'admin@example.com'], $admin)
         ->assertUnprocessable()
-        ->assertJsonPath('message', 'A super admin account cannot own a shop. Use a separate email.');
+        ->assertJsonPath('message', 'A super admin account cannot own a business. Use a separate email.');
 
     $this->postJson('/api/admin/workspaces', ['workspace_name' => 'Nope', 'owner_email' => 'new@example.com'], $admin)
         ->assertUnprocessable()

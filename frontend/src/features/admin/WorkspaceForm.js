@@ -15,16 +15,16 @@ export default function WorkspaceForm() {
     <form action={formAction} className="max-w-lg space-y-4">
       <Alert message={state.message} />
 
-      <Input label="Shop name" name="workspace_name" defaultValue={values.workspace_name} error={errors.workspace_name} required />
+      <Input label="Business name" name="workspace_name" defaultValue={values.workspace_name} error={errors.workspace_name} required />
 
       <fieldset className="space-y-4 rounded-xl bg-white p-4 ring-1 ring-slate-200">
-        <legend className="px-1 text-sm font-semibold">Shop owner login</legend>
+        <legend className="px-1 text-sm font-semibold">Business owner login</legend>
         <Input label="Owner email" name="owner_email" type="email" defaultValue={values.owner_email} error={errors.owner_email} required />
         <Input label="Owner name (new user only)" name="owner_name" defaultValue={values.owner_name} error={errors.owner_name} />
         <Input label="Owner password (new user only)" name="owner_password" type="password" error={errors.owner_password} />
       </fieldset>
 
-      <Button pending={pending}>Create shop</Button>
+      <Button pending={pending}>Create business</Button>
     </form>
   );
 }

@@ -2,7 +2,7 @@
 
 return [
     'owner_role_name' => 'Owner',
-    'module_off' => 'This feature is not switched on for your shop. Please ask ScriptDP to enable it.',
+    'module_off' => 'This feature is not switched on for your business. Please ask ScriptDP to enable it.',
     'trial_ended' => 'Your free trial has ended. Message ScriptDP on WhatsApp :phone to continue.',
     'cannot_grant' => 'You cannot grant permissions you do not have: :permissions',
     'owner_only' => 'Only an owner can manage the owner role.',

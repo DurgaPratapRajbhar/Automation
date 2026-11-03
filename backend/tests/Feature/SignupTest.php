@@ -100,7 +100,7 @@ test('a new person signing in with Google gets an account, a shop and a trial', 
     $this->postJson('/api/auth/google', ['credential' => 'TOKEN'])
         ->assertOk()
         ->assertJsonPath('data.user.email', 'sita@gmail.com')
-        ->assertJsonPath('data.workspaces.0.name', "Sita Devi's shop")
+        ->assertJsonPath('data.workspaces.0.name', "Sita Devi's business")
         ->assertJsonPath('data.workspaces.0.role.is_owner', true);
 
     $user = User::where('email', 'sita@gmail.com')->first();

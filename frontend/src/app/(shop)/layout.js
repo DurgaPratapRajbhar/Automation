@@ -7,7 +7,7 @@ import { CONTACT_PHONE } from '@/lib/contact';
 import UserMenu from '@/components/shop/UserMenu';
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
-export const metadata = { title: 'Shop' };
+export const metadata = { title: 'Dashboard' };
 
 // Shell for every logged-in shop page
 export default async function AppLayout({ children }) {

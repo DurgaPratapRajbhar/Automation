@@ -20,7 +20,7 @@ export default async function FeaturesPage() {
     <div className="space-y-6">
       <PageHeader title="Features" />
       <p className="-mt-3 max-w-2xl text-slate-600">
-        Here is everything the app can do. What is on for your shop is ready to use. For anything else, message ScriptDP on
+        Here is everything the app can do. What is on for your business is ready to use. For anything else, message ScriptDP on
         WhatsApp {CONTACT_PHONE} and we will switch it on for you.
       </p>
 

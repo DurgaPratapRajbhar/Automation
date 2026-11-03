@@ -37,7 +37,7 @@ export default function KnowledgeForm({ action, source }) {
 
       {type === 'text' ? (
         <div className="space-y-1">
-          <label htmlFor="content" className="block text-sm font-medium text-slate-700">About your shop</label>
+          <label htmlFor="content" className="block text-sm font-medium text-slate-700">About your business</label>
           <textarea
             id="content"
             name="content"

@@ -55,11 +55,11 @@ async (page) => {
 
   await step('Admin: create a shop with a new owner login', async () => {
     await page.goto(`${BASE}/admin/workspaces/new`);
-    await page.getByLabel('Shop name').fill(shop);
+    await page.getByLabel('Business name').fill(shop);
     await page.getByLabel('Owner email').fill(owner.email);
     await page.getByLabel('Owner name (new user only)').fill(owner.name);
     await page.getByLabel('Owner password (new user only)').fill(owner.password);
-    await page.getByRole('button', { name: 'Create shop' }).click();
+    await page.getByRole('button', { name: 'Create business' }).click();
     await expectUrl('/admin/workspaces');
     await shopRow().waitFor({ timeout: 30000 });
   });
@@ -173,7 +173,7 @@ async (page) => {
   await step('Knowledge: text entry is saved and learned by the AI', async () => {
     await page.goto(`${BASE}/knowledge/new`);
     await page.getByLabel('Title').fill(`Shop info ${run}`);
-    await page.getByLabel('About your shop').fill('We sell solar lights and panels. Open 9am to 7pm. Free delivery within 5 km.');
+    await page.getByLabel('About your business').fill('We sell solar lights and panels. Open 9am to 7pm. Free delivery within 5 km.');
     await save();
     await expectUrl('/knowledge');
     await reloadUntil(page.locator('tbody tr').filter({ hasText: `Shop info ${run}` }).getByText('Learned', { exact: true }));
@@ -194,7 +194,7 @@ async (page) => {
   await step('Knowledge: edit text and delete the file entry', async () => {
     await page.getByRole('link', { name: `Shop info ${run}` }).click();
     await page.waitForURL(/\/knowledge\/\d+$/);
-    await page.getByLabel('About your shop').fill('We sell solar lights. Open 10am to 8pm.');
+    await page.getByLabel('About your business').fill('We sell solar lights. Open 10am to 8pm.');
     await save();
     await expectUrl('/knowledge');
     await page.getByRole('link', { name: `Price list ${run}` }).click();
@@ -217,9 +217,9 @@ async (page) => {
     await expectUrl('/dashboard');
     const menu = await page.locator('aside').innerText();
     if (!menu.includes('Customers') || menu.includes('Roles') || menu.includes('Knowledge')) throw new Error(`menu: ${menu.replace(/\n/g, ', ')}`);
-    // "Shop profile" lives in the profile menu at the top right
+    // "Business profile" lives in the profile menu at the top right
     await page.locator('header').getByRole('button', { name: 'Profile menu' }).click();
-    if (await page.getByRole('menuitem', { name: 'Shop profile' }).count()) throw new Error('"Shop profile" is visible to staff');
+    if (await page.getByRole('menuitem', { name: 'Business profile' }).count()) throw new Error('"Business profile" is visible to staff');
     await page.keyboard.press('Escape');
     await page.goto(`${BASE}/customers`);
     await page.getByRole('heading', { name: 'Customers' }).waitFor();

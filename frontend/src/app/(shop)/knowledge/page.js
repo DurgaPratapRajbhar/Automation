@@ -17,13 +17,13 @@ export default async function KnowledgePage({ searchParams }) {
   return (
     <>
       <PageHeader
-        title="Shop knowledge"
+        title="Business knowledge"
         actionLabel="Add knowledge"
         actionHref={(await can('knowledge-sources.create')) && '/knowledge/new'}
       />
 
       <p className="mb-4 max-w-2xl text-sm text-slate-600">
-        Tell the bot about your shop — what you sell, timings, prices, offers. The more you add, the better it answers your customers.
+        Tell the bot about your business — what you offer, timings, prices, offers. The more you add, the better it answers your customers.
       </p>
 
       <form className="mb-4 flex gap-2">

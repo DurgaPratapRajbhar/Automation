@@ -12,7 +12,7 @@ function StatusBadge({ status }) {
 
 export default function KnowledgeTable({ sources }) {
   if (sources.length === 0) {
-    return <p className="text-slate-500">No knowledge added yet. Tell the bot about your shop.</p>;
+    return <p className="text-slate-500">No knowledge added yet. Tell the bot about your business.</p>;
   }
 
   return (

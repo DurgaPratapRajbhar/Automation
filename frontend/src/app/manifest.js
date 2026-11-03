@@ -3,7 +3,7 @@ export default function manifest() {
   return {
     name: 'ScriptDP Automation',
     short_name: 'ScriptDP',
-    description: 'WhatsApp AI replies, one inbox and customer details for your shop.',
+    description: 'WhatsApp AI replies, one inbox and customer details for your business.',
     start_url: '/dashboard',
     scope: '/',
     display: 'standalone',

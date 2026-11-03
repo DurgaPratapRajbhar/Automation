@@ -34,7 +34,7 @@ export default function SignupForm({ googleClientId, trialDays }) {
         <Alert message={state.message} />
 
         <Input label="Your name" name="name" autoComplete="name" defaultValue={values.name} error={errors.name} required />
-        <Input label="Shop name" name="shop_name" defaultValue={values.shop_name} error={errors.shop_name} required />
+        <Input label="Business name" name="shop_name" defaultValue={values.shop_name} error={errors.shop_name} required />
         <Input label="Email" name="email" type="email" autoComplete="email" defaultValue={values.email} error={errors.email} required />
         <Input label="Password (10+ characters)" name="password" type="password" autoComplete="new-password" error={errors.password} required />
         <Input label="Type the password again" name="password_confirmation" type="password" autoComplete="new-password" required />

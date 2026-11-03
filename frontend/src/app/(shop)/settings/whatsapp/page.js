@@ -17,7 +17,7 @@ export default async function WhatsAppPage() {
       <PageHeader title="WhatsApp" />
 
       <p className="text-sm text-slate-600">
-        Connect your shop&apos;s WhatsApp number. Customers who message it get answers from the bot, and every chat shows in your Inbox.
+        Connect your business&apos;s WhatsApp number. Customers who message it get answers from the bot, and every chat shows in your Inbox.
       </p>
 
       {canConnect && (

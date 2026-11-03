@@ -20,7 +20,7 @@ export default function LoginForm({ action, title }) {
 
       <Button pending={pending} className="w-full">Login</Button>
 
-      <p className="text-center text-sm text-slate-500">Accounts are created by your shop owner or the platform admin.</p>
+      <p className="text-center text-sm text-slate-500">Accounts are created by your business owner or the platform admin.</p>
     </form>
   );
 }

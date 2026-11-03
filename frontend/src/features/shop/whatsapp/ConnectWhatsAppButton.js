@@ -127,7 +127,7 @@ export default function ConnectWhatsAppButton({ signup }) {
             <strong className="text-red-700">Does not work:</strong> a number that is already on personal WhatsApp or on the WhatsApp Business app.
           </p>
           <p className="text-slate-600">
-            To use that same number, you must first delete its WhatsApp account (its old chats will be lost). Or use a new SIM for the shop.
+            To use that same number, you must first delete its WhatsApp account (its old chats will be lost). Or use a new SIM for the business.
           </p>
           <hr className="border-slate-100" />
           <p className="font-semibold text-red-700">Kaun sa number chalega?</p>

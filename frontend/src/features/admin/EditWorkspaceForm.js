@@ -13,7 +13,7 @@ export default function EditWorkspaceForm({ workspace }) {
   return (
     <form action={formAction} className="max-w-lg space-y-4">
       <Alert message={state.message} type={state.success ? 'success' : 'error'} />
-      <Input label="Shop name" name="workspace_name" defaultValue={state.values?.workspace_name ?? workspace.name} error={errors.workspace_name} required />
+      <Input label="Business name" name="workspace_name" defaultValue={state.values?.workspace_name ?? workspace.name} error={errors.workspace_name} required />
       <Button pending={pending}>Save name</Button>
     </form>
   );

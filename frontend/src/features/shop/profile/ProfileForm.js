@@ -28,7 +28,7 @@ export default function ProfileForm({ profile, canEdit }) {
       <Alert message={state.message} type={state.success ? 'success' : 'error'} />
 
       <fieldset disabled={!canEdit} className="space-y-4">
-        <Input label="Shop name" name="name" defaultValue={values.name} error={errors.name} required />
+        <Input label="Business name" name="name" defaultValue={values.name} error={errors.name} required />
         <Input label="Phone" name="phone" defaultValue={values.phone} error={errors.phone} />
         <Input label="Address" name="address" defaultValue={values.address} error={errors.address} />
 

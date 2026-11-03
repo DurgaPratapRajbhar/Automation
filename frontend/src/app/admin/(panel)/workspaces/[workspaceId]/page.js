@@ -23,9 +23,9 @@ export default async function EditWorkspacePage({ params }) {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Features for this shop</h2>
+        <h2 className="text-lg font-semibold">Features for this business</h2>
         <p className="text-sm text-slate-600">
-          Tick what this shop can use. A new shop starts with Inbox, WhatsApp and Knowledge; switch on more when the customer asks.
+          Tick what this business can use. A new business starts with Inbox, WhatsApp and Knowledge; switch on more when the customer asks.
         </p>
         <WorkspaceModulesForm workspace={workspace} />
       </section>

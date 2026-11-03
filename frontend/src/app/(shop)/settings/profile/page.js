@@ -16,7 +16,7 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <PageHeader title="Shop profile" />
+        <PageHeader title="Business profile" />
         <ProfileForm profile={data.data} canEdit={await can('workspace.edit')} />
       </div>
 

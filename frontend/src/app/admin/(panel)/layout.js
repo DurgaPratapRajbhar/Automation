@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }) {
       <AdminSidebar user={data.data.user} />
       <div className="flex-1">
         <p className="bg-amber-100 px-6 py-2 text-sm text-amber-900">
-          Super Admin panel: settings for all shops on the platform
+          Super Admin panel: settings for all businesses on the platform
         </p>
         <main className="p-6">{children}</main>
       </div>

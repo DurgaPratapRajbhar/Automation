@@ -22,7 +22,7 @@ export default async function TemplatesPage({ params }) {
 
       <p className="text-sm text-slate-600">
         WhatsApp lets you message a customer first, or after 24 hours of silence, only with a template that Meta has approved.
-        Meta charges the shop per template message (Utility costs less than Marketing).
+        Meta charges your business per template message (Utility costs less than Marketing).
       </p>
 
       {templates.ok

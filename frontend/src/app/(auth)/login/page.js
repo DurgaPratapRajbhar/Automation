@@ -11,7 +11,7 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-4">
-      <LoginForm action={login} title="Shop login" />
+      <LoginForm action={login} title="Business login" />
 
       <GoogleButton clientId={googleClientId} />
 
