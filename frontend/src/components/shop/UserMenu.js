@@ -45,7 +45,7 @@ export default function UserMenu({ access }) {
         aria-label="Profile menu"
         className="group flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 shadow-sm ring-1 ring-slate-200 transition hover:ring-2 hover:ring-emerald-300"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-semibold text-white shadow-sm">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-sm font-semibold text-emerald-700">
           {initial}
         </span>
         <span className="hidden text-left leading-tight sm:block">
@@ -54,7 +54,7 @@ export default function UserMenu({ access }) {
         <Icon
           name="chevron"
           size={16}
-          className={`text-emerald-500 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`text-emerald-700 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -68,7 +68,7 @@ export default function UserMenu({ access }) {
           <div className="pt-2">
             {links.map((item) => (
               <Link key={item.href} href={item.href} role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
-                <Icon name={item.icon} size={18} className="text-emerald-500" />
+                <Icon name={item.icon} size={18} className="text-emerald-700" />
                 {item.label}
               </Link>
             ))}
