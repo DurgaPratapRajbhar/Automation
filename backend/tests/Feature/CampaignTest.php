@@ -462,3 +462,26 @@ test('a message WhatsApp reports as failed later also shows with its reason', fu
         ->assertJsonPath('data.failed_people.0.name', 'Sita')
         ->assertJsonPath('data.failed_people.0.error', fn ($text) => str_contains($text, 'undeliverable'));
 });
+
+test('while testing, a message goes only to the allowed numbers and nobody else is called', function () {
+    [$headers, , $channel] = campaignBusiness($this);
+    fakeMetaForCampaigns();
+    $id = $this->postJson('/api/campaigns', campaignPayload($channel->id), $headers)->json('data.id');
+
+    config(['campaigns.only_send_to' => ['919811122233']]);
+
+    // a test to a number that is not allowed is refused, and WhatsApp is never called
+    $this->postJson("/api/campaigns/{$id}/test", ['phone' => '9000000099'], $headers)
+        ->assertForbidden()
+        ->assertJsonPath('message', 'Sending is limited to test numbers right now, so this message was not sent.');
+
+    // the allowed number works
+    $this->postJson("/api/campaigns/{$id}/test", ['phone' => '9811122233'], $headers)->assertOk();
+
+    // a real send reaches nobody: Ramesh and Sita are not allowed numbers
+    $this->postJson("/api/campaigns/{$id}/start", [], $headers)->assertOk();
+    $this->getJson("/api/campaigns/{$id}", $headers)->assertJsonPath('data.report.failed', 2)->assertJsonPath('data.report.sent', 0);
+
+    Http::assertSent(fn (Request $r) => str_contains($r->url(), '/messages') && $r['to'] === '919811122233');
+    Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/messages') && $r['to'] !== '919811122233');
+});

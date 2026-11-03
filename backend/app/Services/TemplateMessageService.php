@@ -28,6 +28,8 @@ class TemplateMessageService
      */
     public function send(Conversation $conversation, ?int $userId, string $name, string $language, array $parameters, ?array $template = null): Message
     {
+        $this->ensureAllowedNumber($conversation->customer_phone);
+
         $template ??= $this->templateService->approved($conversation->workspace_id, $conversation->channel_id, $name, $language);
         $parameters = array_values($parameters);
 
@@ -53,6 +55,16 @@ class TemplateMessageService
         $this->conversations->touchLastMessage($conversation);
 
         return $message->refresh();
+    }
+
+    // While testing, only the numbers in CAMPAIGN_ONLY_SEND_TO may get a message (empty list = anyone)
+    private function ensureAllowedNumber(string $phone): void
+    {
+        $allowed = config('campaigns.only_send_to');
+
+        if ($allowed !== [] && ! in_array($phone, $allowed, true)) {
+            throw new BusinessRuleException(__('campaigns.test_numbers_only'), 403);
+        }
     }
 
     // "Namaste {{1}}, {{2}} baaki hai" + ['Ramesh', '₹1,200'] -> "Namaste Ramesh, ₹1,200 baaki hai"

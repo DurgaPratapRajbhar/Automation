@@ -268,7 +268,14 @@ class CampaignService
             $campaign->workspace_id, $campaign->channel_id, $recipient->phone, $recipient->customer->name,
         );
 
-        $message = $this->sendTemplate($campaign, $conversation, $recipient->parameters, $campaign->created_by_user_id);
+        try {
+            $message = $this->sendTemplate($campaign, $conversation, $recipient->parameters, $campaign->created_by_user_id);
+        } catch (BusinessRuleException $refused) {
+            // Not allowed to send to this person (e.g. while testing): shown as failed with the reason
+            $this->campaigns->updateRecipient($recipient, ['status' => RecipientStatus::Failed->value, 'error' => $refused->getMessage()]);
+
+            return;
+        }
 
         // The message is saved as "failed" with the reason when WhatsApp refused it straight away
         $failed = $message->status === 'failed';
