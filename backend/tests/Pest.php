@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\WorkspaceModule;
 use App\Models\Channel;
 use App\Models\ChannelCredential;
 use App\Models\User;
@@ -47,7 +48,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-// Super admin creates a shop with a new owner, then the owner logs in
+// Super admin creates a shop with every module switched on and a new owner, then the owner logs in
 function registerOwner(TestCase $test, string $email = 'owner@example.com'): array
 {
     $admin = User::firstOrCreate(
@@ -61,6 +62,7 @@ function registerOwner(TestCase $test, string $email = 'owner@example.com'): arr
         'owner_name' => 'Owner',
         'owner_email' => $email,
         'owner_password' => 'password123',
+        'modules' => WorkspaceModule::values(),
     ], ['Authorization' => 'Bearer '.tokenFor($admin->id)])->assertCreated();
 
     $response = $test->postJson('/api/auth/login', ['email' => $email, 'password' => 'password123'])->assertOk();

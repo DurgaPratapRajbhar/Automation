@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\WorkspaceModule;
+use App\Models\Workspace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 
@@ -92,17 +93,34 @@ test('an unknown module name is refused', function () {
         ->assertJsonValidationErrors('modules.1');
 });
 
-test('a shop made by the admin without choosing modules has every module, so old shops keep working', function () {
-    $owner = registerOwner($this, 'old-shop@example.com');
-    $headers = headersFor($owner['token'], $owner['workspace_id']);
+test('a shop made by the admin without choosing modules starts with only the starter modules', function () {
+    $admin = superAdminHeaders();
+
+    $this->postJson('/api/admin/workspaces', [
+        'workspace_name' => 'Plain Shop',
+        'owner_name' => 'Owner',
+        'owner_email' => 'plain@example.com',
+        'owner_password' => 'password123',
+    ], $admin)->assertCreated()->assertJsonPath('data.modules', ['inbox', 'whatsapp', 'knowledge']);
+
+    $login = $this->postJson('/api/auth/login', ['email' => 'plain@example.com', 'password' => 'password123'])->assertOk();
+    $headers = headersFor($login->json('data.access_token'), $login->json('data.workspaces.0.id'));
 
     $this->getJson('/api/workspace/me', $headers)
         ->assertOk()
-        ->assertJsonPath('data.modules', WorkspaceModule::values())
-        ->assertJsonFragment(['customers.view'])
-        ->assertJsonFragment(['members.view']);
-    $this->getJson('/api/customers', $headers)->assertOk();
-    $this->getJson('/api/members', $headers)->assertOk();
+        ->assertJsonPath('data.modules', ['inbox', 'whatsapp', 'knowledge']);
+    $this->getJson('/api/customers', $headers)->assertForbidden()->assertJsonPath('module', 'customers');
+    $this->getJson('/api/members', $headers)->assertForbidden()->assertJsonPath('module', 'team');
+    $this->getJson('/api/campaigns', $headers)->assertForbidden()->assertJsonPath('module', 'campaigns');
+});
+
+test('a shop whose modules were never saved gets only the starter modules', function () {
+    $owner = registerOwner($this, 'null-shop@example.com');
+    Workspace::find($owner['workspace_id'])->forceFill(['modules' => null])->save();
+
+    $this->getJson('/api/workspace/me', headersFor($owner['token'], $owner['workspace_id']))
+        ->assertOk()
+        ->assertJsonPath('data.modules', ['inbox', 'whatsapp', 'knowledge']);
 });
 
 test('the admin can choose the modules when making a shop', function () {
@@ -129,4 +147,18 @@ test('the super admin is never blocked by the modules of a shop', function () {
 
     $this->getJson('/api/customers', $admin)->assertOk();
     $this->getJson('/api/workspace/me', $admin)->assertJsonPath('data.modules', WorkspaceModule::values());
+});
+
+test('orders, products, promises and approvals stay closed until the super admin gives the Orders module', function () {
+    [$shop, $shopId] = selfSignedUpShop($this);
+
+    foreach (['orders', 'products', 'promises/summary', 'actions', 'overview'] as $path) {
+        $this->getJson("/api/{$path}", $shop)->assertForbidden()->assertJsonPath('module', 'orders');
+    }
+
+    $this->putJson("/api/admin/workspaces/{$shopId}", ['workspace_name' => 'Ramesh Kirana', 'modules' => ['inbox', 'whatsapp', 'knowledge', 'orders']], superAdminHeaders())->assertOk();
+
+    foreach (['orders', 'products', 'promises/summary', 'actions', 'overview'] as $path) {
+        $this->getJson("/api/{$path}", $shop)->assertOk();
+    }
 });

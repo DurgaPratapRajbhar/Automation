@@ -12,6 +12,7 @@ enum WorkspaceModule: string
     case Inbox = 'inbox';
     case WhatsApp = 'whatsapp';
     case Knowledge = 'knowledge';
+    case Orders = 'orders';
     case Customers = 'customers';
     case Team = 'team';
     case Campaigns = 'campaigns';
@@ -31,9 +32,10 @@ enum WorkspaceModule: string
     public function permissionGroups(): array
     {
         return match ($this) {
-            self::Inbox => ['conversations', 'messages', 'promises', 'orders'],
+            self::Inbox => ['conversations', 'messages'],
             self::WhatsApp => ['channels', 'templates'],
-            self::Knowledge => ['knowledge-sources', 'products'],
+            self::Knowledge => ['knowledge-sources'],
+            self::Orders => ['orders', 'promises', 'products', 'actions', 'overview'],
             self::Customers => ['customers'],
             self::Team => ['members', 'roles'],
             self::Campaigns => ['contact-imports', 'campaigns', 'campaign-drafts'],

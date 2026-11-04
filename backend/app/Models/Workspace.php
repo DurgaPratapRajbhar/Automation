@@ -42,10 +42,10 @@ class Workspace extends Model
         return ['trial_ends_at' => 'datetime', 'modules' => 'array', 'lead_flow_enabled' => 'boolean', 'lead_questions' => 'array', 'ask_delivery_address' => 'boolean', 'owner_alerts' => 'boolean', 'booking_closed_days' => 'array', 'booking_capacity' => 'integer', 'auto_booking_followups' => 'boolean'];
     }
 
-    // Modules switched on for this shop; null in the database means every module
+    // Modules switched on for this shop; null in the database means the starter set. Anything more, the super admin turns on
     public function enabledModules(): array
     {
-        return $this->modules ?? WorkspaceModule::values();
+        return $this->modules ?? WorkspaceModule::values(WorkspaceModule::starter());
     }
 
     public function hasModule(WorkspaceModule $module): bool

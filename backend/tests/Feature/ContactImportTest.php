@@ -70,7 +70,7 @@ function importAs(TestCase $test, array $headers, UploadedFile $file, array $fie
     return $test->post('/api/contact-imports', ['file' => $file, ...$fields], $headers + ['Accept' => 'application/json']);
 }
 
-// A business that has the Campaigns module switched on (made by the admin without choosing modules = every module)
+// A business that has the Campaigns module switched on (registerOwner turns every module on)
 function campaignOwnerHeaders(TestCase $test, string $email = 'owner@example.com'): array
 {
     $owner = registerOwner($test, $email);

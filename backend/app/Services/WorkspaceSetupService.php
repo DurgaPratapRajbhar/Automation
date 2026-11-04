@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\WorkspaceModule;
 use App\Enums\WorkspaceStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Workspace;
@@ -50,8 +51,8 @@ class WorkspaceSetupService
                 'type' => $data['workspace_type'] ?? 'business',
                 'status' => WorkspaceStatus::Active->value,
                 'trial_ends_at' => $data['trial_ends_at'] ?? null,
-                // null = every module (the admin-made shop of before); signup passes the starter set
-                'modules' => $data['modules'] ?? null,
+                // A new shop starts with the starter set; the super admin turns on the rest
+                'modules' => $data['modules'] ?? WorkspaceModule::values(WorkspaceModule::starter()),
             ]);
 
             $ownerRole = $this->roleService->createSystemRoles($workspace->id);
