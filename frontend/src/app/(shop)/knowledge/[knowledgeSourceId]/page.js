@@ -6,6 +6,8 @@ import { deleteKnowledge, updateKnowledge } from '@/features/shop/knowledge/acti
 import { getKnowledgeSource } from '@/features/shop/knowledge/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Knowledge' };
+
 export default async function KnowledgeSourcePage({ params }) {
   const { knowledgeSourceId } = await params;
   const { ok, data } = await getKnowledgeSource(knowledgeSourceId);

@@ -8,6 +8,8 @@ import ApiKeyCard from '@/features/shop/website/ApiKeyCard';
 import { getApiKey } from '@/features/shop/website/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Business profile' };
+
 export default async function ProfilePage() {
   const { ok, data } = await getProfile();
 

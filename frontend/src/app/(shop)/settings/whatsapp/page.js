@@ -5,6 +5,8 @@ import ConnectWhatsAppButton from '@/features/shop/whatsapp/ConnectWhatsAppButto
 import { getChannels } from '@/features/shop/whatsapp/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'WhatsApp' };
+
 export default async function WhatsAppPage() {
   const { ok, data } = await getChannels();
 

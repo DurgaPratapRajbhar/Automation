@@ -2,6 +2,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import KnowledgeForm from '@/features/shop/knowledge/KnowledgeForm';
 import { createKnowledge } from '@/features/shop/knowledge/actions';
 
+export const metadata = { title: 'Add knowledge' };
+
 export default function NewKnowledgePage() {
   return (
     <>

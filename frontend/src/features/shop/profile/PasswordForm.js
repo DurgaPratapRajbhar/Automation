@@ -5,6 +5,7 @@ import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { changePassword } from '@/features/shop/profile/passwordActions';
+import { PASSWORD_MIN } from '@/lib/forms';
 
 // hasPassword = false: the account was made with Google, so there is no current password to ask for
 export default function PasswordForm({ hasPassword }) {
@@ -20,8 +21,8 @@ export default function PasswordForm({ hasPassword }) {
       ) : (
         <p className="text-sm text-slate-600">You signed in with Google. You can also set a password, to log in with your email.</p>
       )}
-      <Input label="New password (10+ characters)" name="password" type="password" autoComplete="new-password" error={errors.password} required />
-      <Input label="Type it again" name="password_confirmation" type="password" autoComplete="new-password" required />
+      <Input label="New password (10+ characters)" name="password" type="password" minLength={PASSWORD_MIN} autoComplete="new-password" error={errors.password} required />
+      <Input label="Type it again" name="password_confirmation" type="password" minLength={PASSWORD_MIN} autoComplete="new-password" required />
 
       <Button pending={pending}>Change password</Button>
     </form>

@@ -6,6 +6,8 @@ import { deleteRole, saveRole } from '@/features/shop/roles/actions';
 import { getPermissionTree, getRole } from '@/features/shop/roles/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Role' };
+
 export default async function RolePage({ params }) {
   const { roleId } = await params;
   const [role, tree] = await Promise.all([getRole(roleId), getPermissionTree()]);

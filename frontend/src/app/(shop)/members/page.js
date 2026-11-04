@@ -6,6 +6,8 @@ import { getMembers } from '@/features/shop/members/queries';
 import { getRoles } from '@/features/shop/roles/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Team members' };
+
 export default async function MembersPage() {
   const [members, roles] = await Promise.all([getMembers(), getRoles()]);
 

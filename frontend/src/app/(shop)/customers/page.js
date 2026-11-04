@@ -6,6 +6,8 @@ import CustomerTable from '@/features/shop/customers/CustomerTable';
 import { getCustomers } from '@/features/shop/customers/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Customers' };
+
 export default async function CustomersPage({ searchParams }) {
   const { search = '', cursor } = await searchParams;
   const { ok, data } = await getCustomers({ search, cursor });

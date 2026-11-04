@@ -11,6 +11,8 @@ import { getConversation } from '@/features/shop/inbox/queries';
 import { getTemplates } from '@/features/shop/whatsapp/templates/queries';
 import { can, getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Chat' };
+
 export default async function ConversationPage({ params }) {
   const { conversationId } = await params;
   const { ok, data } = await getConversation(conversationId);

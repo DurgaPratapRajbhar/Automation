@@ -6,6 +6,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import ConversationList from '@/features/shop/inbox/ConversationList';
 import { getConversations } from '@/features/shop/inbox/queries';
 
+export const metadata = { title: 'Inbox' };
+
 export default async function InboxPage({ searchParams }) {
   const { search = '', cursor } = await searchParams;
   const { ok, data } = await getConversations({ search, cursor });

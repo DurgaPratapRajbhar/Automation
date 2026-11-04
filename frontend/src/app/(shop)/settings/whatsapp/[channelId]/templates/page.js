@@ -6,6 +6,8 @@ import { createTemplate } from '@/features/shop/whatsapp/templates/actions';
 import { getChannel, getTemplates } from '@/features/shop/whatsapp/templates/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Templates' };
+
 export default async function TemplatesPage({ params }) {
   const { channelId } = await params;
   const [channel, templates] = await Promise.all([getChannel(channelId), getTemplates(channelId)]);

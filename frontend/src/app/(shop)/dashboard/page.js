@@ -5,6 +5,8 @@ import DailySummaryCard from '@/features/shop/promises/DailySummaryCard';
 import { getOverview, getSummary } from '@/features/shop/promises/queries';
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Dashboard' };
+
 export default async function DashboardPage() {
   const { ok, data } = await getWorkspaceAccess();
 

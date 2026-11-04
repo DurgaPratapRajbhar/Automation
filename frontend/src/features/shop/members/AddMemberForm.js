@@ -6,6 +6,7 @@ import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
+import { PASSWORD_MIN } from '@/lib/forms';
 
 export default function AddMemberForm({ roles }) {
   const [state, formAction, pending] = useActionState(addMember, {});
@@ -21,7 +22,7 @@ export default function AddMemberForm({ roles }) {
         <Input label="Email" name="email" type="email" defaultValue={values.email} error={errors.email} required />
         <Select label="Role" name="role_id" options={roles} defaultValue={values.role_id} error={errors.role_id} />
         <Input label="Name (new user only)" name="name" defaultValue={values.name} error={errors.name} />
-        <Input label="Password (new user only)" name="password" type="password" error={errors.password} />
+        <Input label="Password (new user only)" name="password" type="password" minLength={PASSWORD_MIN} error={errors.password} />
       </div>
 
       <Button pending={pending}>Add member</Button>

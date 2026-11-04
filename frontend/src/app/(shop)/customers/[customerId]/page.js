@@ -6,6 +6,8 @@ import { deleteCustomer, saveCustomer } from '@/features/shop/customers/actions'
 import { getCustomer } from '@/features/shop/customers/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Customer' };
+
 export default async function CustomerPage({ params }) {
   const { customerId } = await params;
   const { ok, data } = await getCustomer(customerId);

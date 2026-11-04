@@ -18,6 +18,22 @@ function Status({ message }) {
   return tick ? <span title={tick.label} aria-label={tick.label} className={`ml-1 ${tick.tone}`}>{tick.mark}</span> : null;
 }
 
+// A message with no text (photo, voice note...) shows what it was instead of a raw type name
+const NO_TEXT = {
+  image: 'Photo',
+  audio: 'Voice note',
+  video: 'Video',
+  document: 'Document',
+  sticker: 'Sticker',
+  location: 'Location',
+  contacts: 'Contact card',
+  unsupported: 'This message could not be read. Ask the customer to send it again.',
+};
+
+function noTextLabel(type) {
+  return NO_TEXT[type] ?? 'Message without text';
+}
+
 // Customer on the left, shop (bot or staff) on the right
 function Bubble({ message, conversationId }) {
   const mine = message.direction === 'outbound';
@@ -29,7 +45,9 @@ function Bubble({ message, conversationId }) {
         {who && (
           <p className={`mb-0.5 text-xs font-semibold ${message.is_ai ? 'text-emerald-700' : 'text-slate-300'}`}>{who}</p>
         )}
-        <p className="whitespace-pre-wrap break-words">{message.body ?? `[${message.type}]`}</p>
+        {message.body
+          ? <p className="whitespace-pre-wrap break-words">{message.body}</p>
+          : <p className="italic opacity-70">{noTextLabel(message.type)}</p>}
         {!mine && message.body && message.language === null && message.translation === null && (
           <TranslateButton conversationId={conversationId} messageId={message.id} />
         )}

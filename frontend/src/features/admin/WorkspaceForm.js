@@ -5,6 +5,7 @@ import { createWorkspace } from '@/features/admin/actions';
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { PASSWORD_MIN } from '@/lib/forms';
 
 export default function WorkspaceForm() {
   const [state, formAction, pending] = useActionState(createWorkspace, {});
@@ -21,7 +22,7 @@ export default function WorkspaceForm() {
         <legend className="px-1 text-sm font-semibold">Business owner login</legend>
         <Input label="Owner email" name="owner_email" type="email" defaultValue={values.owner_email} error={errors.owner_email} required />
         <Input label="Owner name (new user only)" name="owner_name" defaultValue={values.owner_name} error={errors.owner_name} />
-        <Input label="Owner password (new user only)" name="owner_password" type="password" error={errors.owner_password} />
+        <Input label="Owner password (new user only)" name="owner_password" type="password" minLength={PASSWORD_MIN} error={errors.owner_password} />
       </fieldset>
 
       <Button pending={pending}>Create business</Button>

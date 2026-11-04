@@ -4,6 +4,8 @@ import RoleForm from '@/components/ui/RoleForm';
 import { saveRole } from '@/features/shop/roles/actions';
 import { getPermissionTree } from '@/features/shop/roles/queries';
 
+export const metadata = { title: 'New role' };
+
 export default async function NewRolePage() {
   const { ok, data } = await getPermissionTree();
 

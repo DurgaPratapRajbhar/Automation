@@ -4,6 +4,8 @@ import RoleTable from '@/features/shop/roles/RoleTable';
 import { getRoles } from '@/features/shop/roles/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Roles' };
+
 export default async function RolesPage() {
   const { ok, data } = await getRoles();
 

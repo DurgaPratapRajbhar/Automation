@@ -1,3 +1,6 @@
+// Same as the API's password rule (min:10), so the browser stops a short one before it is sent
+export const PASSWORD_MIN = 10;
+
 // Shape every server action returns to its form: { message, errors, values }
 export function formError(data, values = {}) {
   const errors = data.errors ?? {};

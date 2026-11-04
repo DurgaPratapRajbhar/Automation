@@ -5,6 +5,7 @@ import { resetMemberPassword } from '@/features/admin/actions';
 import Alert from '@/components/ui/Alert';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { PASSWORD_MIN } from '@/lib/forms';
 
 // One user of a shop: type a new password twice. The user is logged out everywhere and must use the new one.
 export default function MemberPasswordForm({ workspaceId, member }) {
@@ -21,8 +22,8 @@ export default function MemberPasswordForm({ workspaceId, member }) {
       <Alert message={state.message} type={state.success ? 'success' : 'error'} />
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input label="New password (10+ characters)" name="password" type="password" autoComplete="new-password" error={errors.password} required />
-        <Input label="Type it again" name="password_confirmation" type="password" autoComplete="new-password" required />
+        <Input label="New password (10+ characters)" name="password" type="password" minLength={PASSWORD_MIN} autoComplete="new-password" error={errors.password} required />
+        <Input label="Type it again" name="password_confirmation" type="password" minLength={PASSWORD_MIN} autoComplete="new-password" required />
       </div>
 
       <Button pending={pending} variant="secondary">Set new password</Button>

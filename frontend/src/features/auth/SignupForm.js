@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import GoogleButton from '@/features/auth/GoogleButton';
 import { signup } from '@/features/auth/actions';
+import { PASSWORD_MIN } from '@/lib/forms';
 
 const SITE_URL = 'https://scriptdp.com';
 
@@ -36,8 +37,8 @@ export default function SignupForm({ googleClientId, trialDays }) {
         <Input label="Your name" name="name" autoComplete="name" defaultValue={values.name} error={errors.name} required />
         <Input label="Business name" name="shop_name" defaultValue={values.shop_name} error={errors.shop_name} required />
         <Input label="Email" name="email" type="email" autoComplete="email" defaultValue={values.email} error={errors.email} required />
-        <Input label="Password (10+ characters)" name="password" type="password" autoComplete="new-password" error={errors.password} required />
-        <Input label="Type the password again" name="password_confirmation" type="password" autoComplete="new-password" required />
+        <Input label="Password (10+ characters)" name="password" type="password" minLength={PASSWORD_MIN} autoComplete="new-password" error={errors.password} required />
+        <Input label="Type the password again" name="password_confirmation" type="password" minLength={PASSWORD_MIN} autoComplete="new-password" required />
 
         <div className="space-y-1">
           <label className="flex items-start gap-2 text-sm text-slate-600">

@@ -6,6 +6,8 @@ import KnowledgeTable from '@/features/shop/knowledge/KnowledgeTable';
 import { getKnowledgeSources } from '@/features/shop/knowledge/queries';
 import { can } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Knowledge' };
+
 export default async function KnowledgePage({ searchParams }) {
   const { search = '', cursor } = await searchParams;
   const { ok, data } = await getKnowledgeSources({ search, cursor });

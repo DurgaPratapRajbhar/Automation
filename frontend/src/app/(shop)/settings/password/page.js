@@ -3,6 +3,8 @@ import PageHeader from '@/components/ui/PageHeader';
 import PasswordForm from '@/features/shop/profile/PasswordForm';
 import { getWorkspaceAccess } from '@/features/shop/workspace/queries';
 
+export const metadata = { title: 'Change password' };
+
 export default async function PasswordPage() {
   const { ok, data } = await getWorkspaceAccess();
 
