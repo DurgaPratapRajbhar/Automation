@@ -1,17 +1,33 @@
 # One front door for every site on the server. Caddy gets and renews the SSL certificates itself.
 # Each site is a separate Docker project; its website joins the shared "web" network under the name used here.
 
+# Safe browser protections for every site (no CSP on purpose: it can break pages).
+(secure_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+		-X-Powered-By
+	}
+}
+
 app.scriptdp.com {
+	import secure_headers
 	encode gzip
 	reverse_proxy app-frontend:3000
 }
 
 scriptdp.com {
+	import secure_headers
 	encode gzip
 	reverse_proxy blog-frontend:3000
 }
 
 solarlc.com {
+	import secure_headers
 	encode gzip
 	reverse_proxy solar-frontend:3000
 }
