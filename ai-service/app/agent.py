@@ -4,6 +4,7 @@ from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from app import language
 from app.llm import chat, chat_json
 from app.retrieval import search
 
@@ -26,9 +27,12 @@ ANSWER_SYSTEM = (
     "- Greet only if this is the start of the chat. Never begin with 'Namaste' or 'Hello' once you have already talked.\n"
     "- Answer only what was asked, in 1 to 3 short sentences. Do not list everything you know.\n"
     "- Do not repeat something you already told the customer in this chat unless they ask for it again.\n"
-    "- Reply in the same language AND the same script as the customer's latest message: Hindi written in English "
-    "letters gets Hindi in English letters, Devanagari gets Devanagari, English gets English.\n"
-    "- Speak for the business as 'we' (hum), so you never need a he or she form for yourself.\n"
+    "- Write ONLY in the reply language given below, even if the shop information is in another language.\n"
+    "- Always speak for the business as 'we' (hum / हम). Never say 'I' or 'main' / 'मैं', so you never need a he or she "
+    "form (never 'karta hoon' or 'karti hoon'; say 'hum karte hain').\n"
+    "- When asked what the business offers, name every service in the shop information, briefly.\n"
+    "- If the shop information does not say whether the business offers something, never say it does not: say the "
+    "owner will confirm, and set handoff to true.\n"
     "- If the shop information does not have the answer, say so honestly and offer to have the owner reply.\n"
     "Handoff: set handoff to true when the customer agrees to talk to the owner, asks for a person or a call, "
     "is upset or has to repeat themselves, or wants something only the owner can decide (a custom quote, a complaint). "
@@ -36,18 +40,18 @@ ANSWER_SYSTEM = (
     'Reply with ONLY a JSON object: {"reply": "<the message to send>", "handoff": <true or false>}.'
 )
 
-# Shop ne Hinglish chuna ho to jawab Roman letters me Hindi me hoga
-HINGLISH_RULE = (
-    " Always reply in Hinglish: Hindi written in English (Roman) letters, the way people talk on WhatsApp."
-)
 
 REWRITE_SYSTEM = (
     "Rewrite the customer's question into a short search query (keywords) "
     "to look up a shop's knowledge base. Reply with only the query."
 )
 
-# The shop has taught the bot nothing: the owner has to answer
-FALLBACK = "Sorry, we do not have that information here. We have told the owner, who will reply to you in this chat."
+# The shop has taught the bot nothing (or the model failed): the owner has to answer, in the customer's language
+FALLBACKS = {
+    language.ENGLISH: "Sorry, we do not have that information here. We have told the owner, who will reply to you in this chat.",
+    language.HINGLISH: "Maaf kijiye, yeh jaankari abhi humare paas nahi hai. Humne owner ko bata diya hai, woh isi chat me aapko reply karenge.",
+    language.HINDI: "माफ़ कीजिए, यह जानकारी अभी हमारे पास नहीं है। हमने owner को बता दिया है, वे इसी चैट में आपको जवाब देंगे।",
+}
 
 
 class State(TypedDict):
@@ -81,6 +85,13 @@ def search_query(question: str, history: list) -> str:
     """The latest message plus the customer's last few, so a short follow-up still searches the right topic."""
     earlier = [str(line.get("text", "")).strip() for line in history if line.get("from") == "customer"]
     return " ".join([*[text for text in earlier if text][-SEARCH_CONTEXT_LINES:], question]).strip()
+
+
+def reply_language(state: State) -> str:
+    """The customer's own language, or Hinglish always when the shop chose that reply style."""
+    if state["reply_style"] == "hinglish":
+        return language.HINGLISH
+    return language.of_customer(state["question"], state["history"])
 
 
 def parse(reply: str) -> dict | None:
@@ -123,19 +134,19 @@ async def generate(state: State) -> dict:
     user = (
         f"Shop information:\n{context_of(state['docs'])}\n\n"
         f"Chat so far:\n{chat_so_far}\n\n"
-        f"Customer's latest message: {state['question']}"
+        f"Customer's latest message: {state['question']}\n\n"
+        f"Reply language: {language.label(reply_language(state))}"
     )
-    system = ANSWER_SYSTEM + (HINGLISH_RULE if state["reply_style"] == "hinglish" else "")
-    result = parse(await chat_json(system, user))
+    result = parse(await chat_json(ANSWER_SYSTEM, user))
 
     if result is None:
-        return {"answer": FALLBACK, "handoff": True}
+        return {"answer": FALLBACKS[reply_language(state)], "handoff": True}
 
     return {"answer": result["reply"], "handoff": result["handoff"]}
 
 
 def fallback(state: State) -> dict:
-    return {"answer": FALLBACK, "handoff": True}
+    return {"answer": FALLBACKS[reply_language(state)], "handoff": True}
 
 
 def route(state: State) -> str:

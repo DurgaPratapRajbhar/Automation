@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app import agent  # noqa: E402
-from app.agent import FALLBACK, parse, search_query, transcript_of  # noqa: E402
+from app.agent import FALLBACKS, parse, search_query, transcript_of  # noqa: E402
+from app.language import ENGLISH, HINGLISH  # noqa: E402
 
 HISTORY = [
     {"from": "customer", "text": "Mujhe website banwana hai"},
@@ -76,17 +77,39 @@ class AnswerTest(unittest.TestCase):
 
         self.assertIn("(this is the first message)", model.call_args.args[1])
 
+    def test_the_reply_language_is_told_to_the_model(self):
+        _, model = self.run_answer('{"reply": "ok", "handoff": false}', ["We build websites."])
+        self.assertIn("Reply language: Hinglish", model.call_args.args[1])
+
+    def test_a_hinglish_shop_always_gets_hinglish(self):
+        found = [{"content": "We build websites.", "score": 0.9}]
+
+        with patch.object(agent, "search", new=AsyncMock(return_value=found)), \
+                patch.object(agent, "chat_json", new=AsyncMock(return_value='{"reply": "ok", "handoff": false}')) as model:
+            asyncio.run(agent.answer_question(3, "Do you build websites?", "hinglish"))
+
+        self.assertIn("Reply language: Hinglish", model.call_args.args[1])
+
+    def test_english_question_gets_english(self):
+        found = [{"content": "We build websites.", "score": 0.9}]
+
+        with patch.object(agent, "search", new=AsyncMock(return_value=found)), \
+                patch.object(agent, "chat_json", new=AsyncMock(return_value='{"reply": "ok", "handoff": false}')) as model:
+            asyncio.run(agent.answer_question(3, "Do you build mobile apps?"))
+
+        self.assertIn("Reply language: English", model.call_args.args[1])
+
     def test_an_unusable_model_reply_hands_the_chat_to_the_owner(self):
         result, _ = self.run_answer('{"reply": ""}', ["We build websites."])
 
-        self.assertEqual(result["answer"], FALLBACK)
+        self.assertEqual(result["answer"], FALLBACKS[HINGLISH])  # "Haan" after a Hinglish chat
         self.assertTrue(result["handoff"])
 
     def test_a_shop_with_no_knowledge_hands_the_chat_to_the_owner(self):
         with patch.object(agent, "search", new=AsyncMock(return_value=[])):
             result = asyncio.run(agent.answer_question(3, "Hi"))
 
-        self.assertEqual(result["answer"], FALLBACK)
+        self.assertEqual(result["answer"], FALLBACKS[ENGLISH])
         self.assertTrue(result["handoff"])
 
 
