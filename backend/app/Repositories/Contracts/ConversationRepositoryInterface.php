@@ -36,4 +36,7 @@ interface ConversationRepositoryInterface
     public function countUnread(int $workspaceId): int;
 
     public function touchLastMessage(Conversation $conversation): void;
+
+    // The bot stays quiet in this chat until then
+    public function pauseBot(Conversation $conversation, \DateTimeInterface $until): void;
 }

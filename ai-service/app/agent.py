@@ -1,8 +1,10 @@
+import json
+import re
 from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from app.llm import chat
+from app.llm import chat, chat_json
 from app.retrieval import search
 
 # Ek baar rewrite karke dobara dhundhne ka mauka
@@ -11,11 +13,27 @@ MAX_RETRIES = 1
 # Is score se upar maano jaankari milti-julti hai (nomic cosine ~0 se 1)
 RELEVANCE_THRESHOLD = 0.45
 
+# How many of the customer's earlier messages join the search, so "haan" or "aur?" still finds the right topic
+SEARCH_CONTEXT_LINES = 2
+
 ANSWER_SYSTEM = (
-    "You are a helpful assistant for a shop, answering the shop's customers on WhatsApp. "
-    "Answer using ONLY the shop information given. "
-    "If the answer is not in it, politely say you are not sure and offer to connect them to the shop. "
-    "Keep replies short and friendly, and reply in the same language the customer used."
+    "You are the WhatsApp assistant of a business, talking to one of its customers. Talk like a good, polite member of "
+    "the shop's staff: warm, natural and to the point.\n"
+    "Facts: use ONLY the shop information given. Never invent a price, a service, a time or a promise.\n"
+    "Conversation: read the chat so far and answer the customer's LATEST message in that context. A short reply such as "
+    "'haan', 'yes', 'ok', 'karwao', 'theek hai' answers YOUR last question or offer: act on it, do not start again.\n"
+    "Rules:\n"
+    "- Greet only if this is the start of the chat. Never begin with 'Namaste' or 'Hello' once you have already talked.\n"
+    "- Answer only what was asked, in 1 to 3 short sentences. Do not list everything you know.\n"
+    "- Do not repeat something you already told the customer in this chat unless they ask for it again.\n"
+    "- Reply in the same language AND the same script as the customer's latest message: Hindi written in English "
+    "letters gets Hindi in English letters, Devanagari gets Devanagari, English gets English.\n"
+    "- Speak for the business as 'we' (hum), so you never need a he or she form for yourself.\n"
+    "- If the shop information does not have the answer, say so honestly and offer to have the owner reply.\n"
+    "Handoff: set handoff to true when the customer agrees to talk to the owner, asks for a person or a call, "
+    "is upset or has to repeat themselves, or wants something only the owner can decide (a custom quote, a complaint). "
+    "With handoff true, tell them the owner has been told and will reply here in this chat; do not promise a time.\n"
+    'Reply with ONLY a JSON object: {"reply": "<the message to send>", "handoff": <true or false>}.'
 )
 
 # Shop ne Hinglish chuna ho to jawab Roman letters me Hindi me hoga
@@ -28,22 +46,58 @@ REWRITE_SYSTEM = (
     "to look up a shop's knowledge base. Reply with only the query."
 )
 
-FALLBACK = "Sorry, I'm not sure about that. Let me connect you to the shop so they can help."
+# The shop has taught the bot nothing: the owner has to answer
+FALLBACK = "Sorry, we do not have that information here. We have told the owner, who will reply to you in this chat."
 
 
 class State(TypedDict):
     workspace_id: int
     reply_style: str
     question: str
+    history: list
     query: str
     docs: list
     attempts: int
     relevant: bool
     answer: str | None
+    handoff: bool
 
 
 def context_of(docs: list) -> str:
     return "\n\n".join(f"- {doc['content']}" for doc in docs)
+
+
+def transcript_of(history: list) -> str:
+    """Earlier messages of the chat, oldest first, as 'Customer:' / 'Business:' lines."""
+    lines = []
+    for line in history:
+        text = str(line.get("text", "")).strip()
+        if text:
+            lines.append(f"{'Customer' if line.get('from') == 'customer' else 'Business'}: {text}")
+    return "\n".join(lines)
+
+
+def search_query(question: str, history: list) -> str:
+    """The latest message plus the customer's last few, so a short follow-up still searches the right topic."""
+    earlier = [str(line.get("text", "")).strip() for line in history if line.get("from") == "customer"]
+    return " ".join([*[text for text in earlier if text][-SEARCH_CONTEXT_LINES:], question]).strip()
+
+
+def parse(reply: str) -> dict | None:
+    """The model's reply -> {reply, handoff}; plain text (a model that ignored JSON) is used as the reply."""
+    cleaned = re.sub(r"^```(?:json)?|```$", "", reply.strip(), flags=re.MULTILINE).strip()
+
+    try:
+        data = json.loads(cleaned)
+    except ValueError:
+        return {"reply": cleaned, "handoff": False} if cleaned and not cleaned.startswith("{") else None
+
+    if not isinstance(data, dict):
+        return None
+
+    text = str(data.get("reply", "")).strip()
+
+    return {"reply": text, "handoff": data.get("handoff") is True} if text else None
 
 
 def best_score(docs: list) -> float:
@@ -60,18 +114,28 @@ def grade(state: State) -> dict:
 
 
 async def rewrite(state: State) -> dict:
-    query = await chat(REWRITE_SYSTEM, state["question"])
+    query = await chat(REWRITE_SYSTEM, state["query"])
     return {"query": query.strip(), "attempts": state["attempts"] + 1}
 
 
 async def generate(state: State) -> dict:
-    user = f"Shop information:\n{context_of(state['docs'])}\n\nCustomer question: {state['question']}"
+    chat_so_far = transcript_of(state["history"]) or "(this is the first message)"
+    user = (
+        f"Shop information:\n{context_of(state['docs'])}\n\n"
+        f"Chat so far:\n{chat_so_far}\n\n"
+        f"Customer's latest message: {state['question']}"
+    )
     system = ANSWER_SYSTEM + (HINGLISH_RULE if state["reply_style"] == "hinglish" else "")
-    return {"answer": await chat(system, user)}
+    result = parse(await chat_json(system, user))
+
+    if result is None:
+        return {"answer": FALLBACK, "handoff": True}
+
+    return {"answer": result["reply"], "handoff": result["handoff"]}
 
 
 def fallback(state: State) -> dict:
-    return {"answer": FALLBACK}
+    return {"answer": FALLBACK, "handoff": True}
 
 
 def route(state: State) -> str:
@@ -112,19 +176,23 @@ def build_agent():
 agent = build_agent()
 
 
-async def answer_question(workspace_id: int, question: str, reply_style: str = "auto") -> dict:
+async def answer_question(workspace_id: int, question: str, reply_style: str = "auto", history: list | None = None) -> dict:
+    history = history or []
     result = await agent.ainvoke({
         "workspace_id": workspace_id,
         "reply_style": reply_style,
         "question": question,
-        "query": question,
+        "history": history,
+        "query": search_query(question, history),
         "docs": [],
         "attempts": 0,
         "relevant": False,
         "answer": None,
+        "handoff": False,
     })
     return {
         "answer": result["answer"],
+        "handoff": result["handoff"],
         "used": result["docs"],
         "attempts": result["attempts"],
         "relevant": result["relevant"],

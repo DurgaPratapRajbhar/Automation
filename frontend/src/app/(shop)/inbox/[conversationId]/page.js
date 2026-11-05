@@ -6,7 +6,7 @@ import ReplyForm from '@/features/shop/inbox/ReplyForm';
 import LeadCard from '@/features/shop/leads/LeadCard';
 import TemplateSender from '@/features/shop/inbox/TemplateSender';
 import { sendTemplateMessage } from '@/features/shop/inbox/actions';
-import { customerLabel } from '@/features/shop/inbox/format';
+import { customerLabel, formatTime } from '@/features/shop/inbox/format';
 import { getConversation } from '@/features/shop/inbox/queries';
 import { getTemplates } from '@/features/shop/whatsapp/templates/queries';
 import { can, getWorkspaceAccess } from '@/features/shop/workspace/queries';
@@ -46,6 +46,12 @@ export default async function ConversationPage({ params }) {
       <LeadCard conversation={conversation} />
 
       <ChatThread messages={conversation.messages} conversationId={conversation.id} />
+
+      {conversation.bot_paused_until && (
+        <p className="rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900 ring-1 ring-sky-200">
+          The bot is quiet in this chat until {formatTime(conversation.bot_paused_until)}, because you replied here or the customer asked to talk to you.
+        </p>
+      )}
 
       {!conversation.window_open && (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200">

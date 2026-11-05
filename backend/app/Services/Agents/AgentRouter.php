@@ -35,8 +35,13 @@ class AgentRouter
 
         $conversation = $this->conversations->find($message->conversation_id);
 
+        // The owner is talking here, or the customer asked for the owner: no agent butts in
+        if (! $conversation || $conversation->botPaused()) {
+            return;
+        }
+
         foreach ($this->agents as $agent) {
-            if ($conversation && $agent->handles($conversation, $message)) {
+            if ($agent->handles($conversation, $message)) {
                 $agent->reply($conversation, $message);
 
                 return;

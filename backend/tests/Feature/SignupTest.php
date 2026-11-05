@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\Ai\AiAnswer;
 use App\Services\Contracts\AiResponderInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -195,9 +196,9 @@ test('when the trial ends the shop is locked with a clear message, and its key s
 test('a shop on trial gets a limited number of AI answers a day, a paid shop does not', function () {
     app()->bind(AiResponderInterface::class, fn () => new class implements AiResponderInterface
     {
-        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
+        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto', array $history = []): ?AiAnswer
         {
-            return 'ok';
+            return new AiAnswer('ok');
         }
     });
 

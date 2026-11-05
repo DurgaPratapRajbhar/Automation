@@ -6,7 +6,7 @@ A failure shows under **Problems**; the owner can dismiss it (what was prepared 
 
 | Agent | Answers when | Does |
 |---|---|---|
-| Support (`SupportAgent`) | everything the others do not take | answers from the Knowledge text |
+| Support (`SupportAgent`) | everything the others do not take | answers from the Knowledge text, reading the last messages of the chat (`config/bot.php`); when the customer wants the owner it says so, alerts the owner and the bot goes quiet in that chat |
 | Orders (`OperationsAgent`) | the message is about buying (a buying word or a product name, in Latin or Hindi script), or answers the Orders assistant | price and stock from the real product list, drafts an order or a booking at OUR prices; asks for the address if the business delivers |
 | Cancellation (`CancellationAgent`) | a customer with an open (not delivered) order writes "cancel" (words in `config/operations.php`, Hindi script too; no AI) | tells the customer the shop was asked, alerts the owner, proposes `order.cancel`; the owner's Yes cancels the order, gives the stock back and tells the customer |
 | Sales (`SalesAgent`) | the first message of a new person, when the lead questions are on and it is not about buying | asks the owner's questions (up to 3), scores the lead hot / warm / cold, WhatsApp alert for a hot lead |
@@ -14,6 +14,7 @@ A failure shows under **Problems**; the owner can dismiss it (what was prepared 
 | Marketing (`MarketingAgent`) | the owner asks for a campaign message | writes a Meta-ready template from the real products (`{{1}}` = name, STOP line always added); nothing is sent |
 
 Router order: Cancellation, Orders, Sales, Support (`AgentRouter`).
+No agent answers in a chat while `bot_paused_until` is in the future: it is set for `bot.human_pause_hours` when the owner replies from the Inbox or the customer asks for the owner.
 
 ## Actions (`agent_actions`, one handler class per type)
 `order.confirm`, `order.cancel`, `reminder.send` (late payment), `booking.reminder`, `feedback.request`, `report.send` (daily report to the owner's own WhatsApp).

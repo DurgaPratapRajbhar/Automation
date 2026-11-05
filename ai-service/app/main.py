@@ -3,7 +3,7 @@ from datetime import date
 
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app import db, indexing
 from app.agent import answer_question
@@ -32,10 +32,21 @@ class LearnRequest(BaseModel):
     content: str
 
 
+class ChatLine(BaseModel):
+    # "customer" or "business" (bot or staff)
+    sender: str = Field(alias="from")
+    text: str
+
+    def as_dict(self) -> dict:
+        return {"from": self.sender, "text": self.text}
+
+
 class AskRequest(BaseModel):
     workspace_id: int
     question: str
     reply_style: str = "auto"  # auto | hinglish
+    # The chat before the question, oldest first (WhatsApp); the website chatbot sends none
+    history: list[ChatLine] = []
 
 
 class TranslateRequest(BaseModel):
@@ -141,7 +152,7 @@ async def learn_file(
 # Agentic RAG (LangGraph): retrieve -> grade -> (rewrite+retry | generate | fallback)
 @app.post("/ask")
 async def ask(request: AskRequest):
-    return await answer_question(request.workspace_id, request.question, request.reply_style)
+    return await answer_question(request.workspace_id, request.question, request.reply_style, [line.as_dict() for line in request.history])
 
 
 # Translate one message (Hindi <-> English...) and tell which language it was written in

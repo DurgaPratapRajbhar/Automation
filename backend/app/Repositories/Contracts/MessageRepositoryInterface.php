@@ -16,6 +16,9 @@ interface MessageRepositoryInterface
     // Chat screen: last $limit messages, oldest first
     public function forConversation(int $conversationId, int $limit): Collection;
 
+    // The $limit messages written just before $messageId in the same chat, oldest first
+    public function before(int $conversationId, int $messageId, int $limit): Collection;
+
     // When the customer last wrote (starts WhatsApp's 24-hour reply window)
     // The customer wrote before this message in the same chat
     public function hasEarlierInbound(int $conversationId, int $messageId): bool;

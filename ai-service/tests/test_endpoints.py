@@ -50,6 +50,26 @@ class EndpointTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(translate.call_args.args, ("Hello", "Hindi"))
 
+    def test_ask_passes_the_chat_history_on(self):
+        answer = {"answer": "ok", "handoff": False, "used": [], "attempts": 0, "relevant": True}
+
+        with patch("app.main.answer_question", new=AsyncMock(return_value=answer)) as ask:
+            response = client.post("/ask", json={
+                "workspace_id": 3, "question": "Haan", "reply_style": "hinglish",
+                "history": [{"from": "customer", "text": "Website chahiye"}, {"from": "business", "text": "Connect karun?"}],
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ask.call_args.args, (3, "Haan", "hinglish", [{"from": "customer", "text": "Website chahiye"}, {"from": "business", "text": "Connect karun?"}]))
+
+    def test_ask_without_history_still_works(self):
+        answer = {"answer": "ok", "handoff": False, "used": [], "attempts": 0, "relevant": True}
+
+        with patch("app.main.answer_question", new=AsyncMock(return_value=answer)) as ask:
+            self.assertEqual(client.post("/ask", json={"workspace_id": 3, "question": "Hi"}).status_code, 200)
+
+        self.assertEqual(ask.call_args.args, (3, "Hi", "auto", []))
+
     def test_a_request_missing_a_field_is_refused_not_a_server_error(self):
         # the backend must send exactly these names: a missing one is a 422 here, never a silent 500
         self.assertEqual(client.post("/operations", json={"products": [], "today": "2026-11-04"}).status_code, 422)

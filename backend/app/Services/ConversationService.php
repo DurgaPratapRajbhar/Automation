@@ -79,6 +79,9 @@ class ConversationService
 
         $this->conversations->touchLastMessage($conversation);
 
+        // The owner is talking now: the bot does not answer over them in this chat for a while
+        $this->conversations->pauseBot($conversation, now()->addHours(config('bot.human_pause_hours')));
+
         return $this->presentMessage($message->refresh()->load('sentBy:id,name'));
     }
 
@@ -119,6 +122,8 @@ class ConversationService
             'status' => $conversation->status,
             'unread_count' => $conversation->unread_count,
             'last_message_at' => $conversation->last_message_at,
+            // Set while the owner is talking in this chat: the bot is quiet until then
+            'bot_paused_until' => $conversation->botPaused() ? $conversation->bot_paused_until : null,
             'last_message' => $last ? [
                 'body' => $last->body,
                 'direction' => $last->direction,

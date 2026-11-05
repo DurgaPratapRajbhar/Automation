@@ -33,6 +33,6 @@ class PublicAskController extends Controller
             return response()->json(['success' => false, 'message' => __('api_key.ai_unavailable')], 503);
         }
 
-        return response()->json(['success' => true, 'data' => ['answer' => $answer]]);
+        return response()->json(['success' => true, 'data' => ['answer' => $answer->text]]);
     }
 }

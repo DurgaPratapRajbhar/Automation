@@ -26,6 +26,17 @@ class MessageRepository implements MessageRepositoryInterface
             ->values();
     }
 
+    public function before(int $conversationId, int $messageId, int $limit): Collection
+    {
+        return Message::where('conversation_id', $conversationId)
+            ->where('id', '<', $messageId)
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->reverse()
+            ->values();
+    }
+
     public function create(array $data): Message
     {
         return Message::create($data);

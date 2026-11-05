@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Workspace;
+use App\Services\Ai\AiAnswer;
 use App\Services\Contracts\AiResponderInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -19,9 +20,9 @@ function fakeAi(?string $answer = 'Haan, delivery free hai.'): void
     {
         public function __construct(private ?string $reply) {}
 
-        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto'): ?string
+        public function answer(int $workspaceId, string $question, string $replyStyle = 'auto', array $history = []): ?AiAnswer
         {
-            return $this->reply === null ? null : "[{$workspaceId}] {$this->reply}";
+            return $this->reply === null ? null : new AiAnswer("[{$workspaceId}] {$this->reply}");
         }
     });
 }

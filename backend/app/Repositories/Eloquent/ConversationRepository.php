@@ -90,4 +90,9 @@ class ConversationRepository implements ConversationRepositoryInterface
             'status' => 'open',   // closed chat reopens when customer writes again
         ]);
     }
+
+    public function pauseBot(Conversation $conversation, \DateTimeInterface $until): void
+    {
+        $conversation->update(['bot_paused_until' => $until]);
+    }
 }
