@@ -99,6 +99,28 @@ class AnswerTest(unittest.TestCase):
 
         self.assertIn("Reply language: English", model.call_args.args[1])
 
+    def test_a_reply_in_the_wrong_language_is_written_again(self):
+        found = [{"content": "We build websites.", "score": 0.9}]
+        replies = ['{"reply": "Hum abhi mobile apps nahi banate hain.", "handoff": false}',
+                   '{"reply": "The owner will confirm if we build mobile apps.", "handoff": true}']
+
+        with patch.object(agent, "search", new=AsyncMock(return_value=found)), \
+                patch.object(agent, "chat_json", new=AsyncMock(side_effect=replies)) as model:
+            result = asyncio.run(agent.answer_question(3, "Do you build mobile apps?"))
+
+        self.assertEqual(model.call_count, 2)
+        self.assertIn("was not in English", model.call_args.args[1])
+        self.assertEqual(result["answer"], "The owner will confirm if we build mobile apps.")
+        self.assertTrue(result["handoff"])
+
+    def test_a_reply_in_the_right_language_is_sent_as_it_is(self):
+        _, model = self.run_answer('{"reply": "Theek hai, owner ko bata diya hai.", "handoff": true}', ["We build websites."])
+        self.assertEqual(model.call_count, 1)
+
+    def test_the_language_rule_comes_first_in_the_instructions(self):
+        _, model = self.run_answer('{"reply": "Theek hai.", "handoff": false}', ["We build websites."])
+        self.assertTrue(model.call_args.args[0].startswith("IMPORTANT: write your reply ONLY in Hinglish"))
+
     def test_an_unusable_model_reply_hands_the_chat_to_the_owner(self):
         result, _ = self.run_answer('{"reply": ""}', ["We build websites."])
 

@@ -129,18 +129,33 @@ async def rewrite(state: State) -> dict:
     return {"query": query.strip(), "attempts": state["attempts"] + 1}
 
 
+def system_for(reply_in: str) -> str:
+    """The language rule goes first: small models follow what they read first."""
+    return (
+        f"IMPORTANT: write your reply ONLY in {language.label(reply_in)}. "
+        "Never say the business does not offer something unless the shop information says so.\n\n"
+        + ANSWER_SYSTEM
+    )
+
+
 async def generate(state: State) -> dict:
+    reply_in = reply_language(state)
     chat_so_far = transcript_of(state["history"]) or "(this is the first message)"
     user = (
         f"Shop information:\n{context_of(state['docs'])}\n\n"
         f"Chat so far:\n{chat_so_far}\n\n"
         f"Customer's latest message: {state['question']}\n\n"
-        f"Reply language: {language.label(reply_language(state))}"
+        f"Reply language: {language.label(reply_in)}"
     )
-    result = parse(await chat_json(ANSWER_SYSTEM, user))
+    result = parse(await chat_json(system_for(reply_in), user))
+
+    # Checked in code: a reply in the wrong language is written once more, with the mistake pointed out
+    if result and language.detect(result["reply"]) not in (reply_in, None):
+        retry = user + f"\n\nYour last reply was not in {language.label(reply_in)}. Write it again, in {language.label(reply_in)} only."
+        result = parse(await chat_json(system_for(reply_in), retry)) or result
 
     if result is None:
-        return {"answer": FALLBACKS[reply_language(state)], "handoff": True}
+        return {"answer": FALLBACKS[reply_in], "handoff": True}
 
     return {"answer": result["reply"], "handoff": result["handoff"]}
 
